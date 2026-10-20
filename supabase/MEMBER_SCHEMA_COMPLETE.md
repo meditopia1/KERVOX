@@ -1,0 +1,240 @@
+# Complete Member Schema
+
+All members in the system share the same database structure. Only the values differ, including plan names, status, and broker group.
+
+## Current Members Table (71 columns)
+
+### Personal Information
+- `id` - UUID (Primary Key)
+- `member_number` - Unique member/policy number (for example `AIB1000979` or `PAR10001`)
+- `first_name` - First name or initial
+- `last_name` - Surname
+- `id_number` - South African ID number
+- `date_of_birth` - Date of birth
+- `gender` - Gender
+- `email` - Email address
+- `mobile` - Mobile phone number
+- `phone` - Alternative phone number
+
+### Address Information
+- `address_line1` - Street address
+- `address_line2` - Additional address info
+- `city` - City
+- `postal_code` - Postal code
+
+### Banking Information
+- `bank_name` - Bank name
+- `account_number` - Account number
+- `branch_code` - Branch code
+- `account_holder_name` - Account holder name
+
+### Broker and Group Information
+- `broker_code` - Broker code (for example `PAR`, `AXS`, `MED`)
+- `broker_id` - Foreign key to `brokers`
+- `debit_order_day` - Day of month for debit order (`1`-`31`)
+- `monthly_premium` - Monthly premium amount
+- `payment_status` - Payment status (`active`, `rejected`, `suspended`)
+- `last_payment_date` - Last successful payment date
+- `last_payment_amount` - Last payment amount
+
+### Netcash Integration
+- `netcash_account_reference` - Unique Netcash reference (for example `D1-PAR10001`)
+- `debit_order_status` - Debit order status (`pending`, `active`, `suspended`, `failed`, `cancelled`)
+- `last_debit_date` - Last debit order attempt date
+- `next_debit_date` - Next scheduled debit order date
+- `failed_debit_count` - Number of consecutive failed debit attempts
+- `debit_order_mandate_date` - Date when debit order mandate was signed
+- `debicheck_mandate_id` - DebiCheck mandate reference number
+- `debicheck_mandate_status` - DebiCheck status (`pending`, `approved`, `rejected`, `expired`)
+- `total_arrears` - Total outstanding arrears amount
+
+### Plan Information
+- `plan_id` - Plan identifier
+- `plan_name` - Plan name
+- `plan_config` - Plan configuration JSON
+- `start_date` - Plan start date
+
+### Status and Tracking
+- `status` - Member status (`active`, `pending`, `suspended`, `cancelled`, `inactive`)
+- `kyc_status` - KYC verification status
+- `kyc_verified_at` - KYC verification timestamp
+- `risk_score` - Risk score
+- `risk_rating` - Risk rating
+
+### Documents
+- `id_document_url` - ID document URL
+- `id_document_ocr_data` - OCR extracted data JSON
+- `proof_of_address_url` - Proof of address URL
+- `proof_of_address_ocr_data` - OCR extracted data JSON
+- `selfie_url` - Selfie photo URL
+- `face_verification_result` - Face verification result JSON
+- `signature_url` - Signature image URL
+- `voice_recording_url` - Voice recording URL
+
+### Medical Information
+- `medical_history` - Medical history JSON
+
+### Consent and Compliance
+- `marketing_consent` - Marketing consent flag
+- `marketing_consent_date` - Consent date
+- `email_consent` - Email consent
+- `sms_consent` - SMS consent
+- `phone_consent` - Phone consent
+- `terms_accepted_at` - Terms acceptance timestamp
+- `terms_ip_address` - IP address at acceptance
+- `terms_user_agent` - User agent at acceptance
+
+### Application Tracking
+- `application_id` - Related application UUID
+- `application_number` - Application number
+- `approved_at` - Approval timestamp
+- `approved_by` - Approver UUID
+
+### Underwriting
+- `underwriting_status` - Underwriting status
+- `underwriting_notes` - Underwriting notes
+- `review_notes` - Review notes
+
+### System Fields
+- `user_id` - Related user UUID
+- `contact_id` - Related contact UUID
+- `created_at` - Record creation timestamp
+- `updated_at` - Last update timestamp
+
+---
+
+## Example Member Record
+
+```json
+{
+  "id": "uuid-here",
+  "member_number": "PAR10001",
+  "first_name": "John",
+  "last_name": "Smith",
+  "id_number": "8001015800080",
+  "date_of_birth": "1980-01-01",
+  "gender": "male",
+  "email": "john.smith@example.com",
+  "mobile": "0821234567",
+  "phone": null,
+
+  "address_line1": "123 Main Street",
+  "address_line2": "Apartment 4B",
+  "city": "Johannesburg",
+  "postal_code": "2000",
+
+  "bank_name": "Standard Bank",
+  "account_number": "123456789",
+  "branch_code": "051001",
+  "account_holder_name": "John Smith",
+
+  "broker_code": "PAR",
+  "broker_id": "broker-uuid",
+  "debit_order_day": 2,
+  "monthly_premium": 565.0,
+  "payment_status": "active",
+  "last_payment_date": "2026-01-02",
+  "last_payment_amount": 565.0,
+
+  "plan_id": "starter-plan",
+  "plan_name": "VALUE PLUS PLAN",
+  "plan_config": {
+    "cover_amount": 50000
+  },
+  "start_date": "2025-12-01",
+
+  "status": "active",
+  "kyc_status": "verified",
+  "kyc_verified_at": "2025-12-01T10:00:00Z",
+  "risk_score": 75,
+  "risk_rating": "low",
+
+  "id_document_url": "https://...",
+  "id_document_ocr_data": {},
+  "proof_of_address_url": "https://...",
+  "proof_of_address_ocr_data": {},
+  "selfie_url": "https://...",
+  "face_verification_result": {},
+  "signature_url": "https://...",
+  "voice_recording_url": "https://...",
+
+  "medical_history": {},
+
+  "marketing_consent": true,
+  "marketing_consent_date": "2025-12-01",
+  "email_consent": true,
+  "sms_consent": true,
+  "phone_consent": false,
+  "terms_accepted_at": "2025-12-01T09:00:00Z",
+  "terms_ip_address": "102.165.x.x",
+  "terms_user_agent": "Mozilla/5.0...",
+
+  "application_id": "app-uuid",
+  "application_number": "APP2025001",
+  "approved_at": "2025-12-01T11:00:00Z",
+  "approved_by": "admin-uuid",
+
+  "underwriting_status": "approved",
+  "underwriting_notes": "Standard approval",
+  "review_notes": null,
+
+  "user_id": "user-uuid",
+  "contact_id": "contact-uuid",
+  "created_at": "2025-12-01T08:00:00Z",
+  "updated_at": "2026-01-02T10:00:00Z"
+}
+```
+
+---
+
+## What Differs Between Members
+
+### Always Different
+- `id` - Unique UUID
+- `member_number` - Unique policy number
+- Personal details such as name, ID, date of birth, and contact info
+- Banking details
+- `broker_code` - Which broker channel they came from
+- `monthly_premium` - Their specific premium amount
+
+### Often Different
+- `plan_id` and `plan_name` - Different plan selections
+- `status` - `active`, `pending`, `suspended`, `cancelled`, `inactive`
+- `payment_status` - `active`, `rejected`, `suspended`
+- `debit_order_day` - Different collection dates
+- Documents and verification data
+- Medical history
+- Consent preferences
+
+### Usually Shared Within a Broker Group
+- `broker_id` - Often shared across members in the same broker group
+- Commission rates - Stored in `brokers`, not `members`
+
+---
+
+## Required vs Optional Fields
+
+### Required (NOT NULL)
+- `id`
+- `member_number`
+- `id_number`
+- `date_of_birth`
+- `email`
+- `mobile`
+- `first_name`
+- `last_name`
+
+### Optional (Can be NULL)
+- Most other fields can be null initially
+- Fields are filled during onboarding and application processing
+- Fields are updated over time as a member interacts with the system
+
+---
+
+## Current Live Snapshot Reference
+
+Use `apps/frontend/docs/project/CURRENT_DATABASE_SNAPSHOT.md` for current live counts, broker removals, test-account cleanup, and `plan_name` normalization notes.
+
+## Status
+
+Schema documented and aligned with the current live cleanup baseline.

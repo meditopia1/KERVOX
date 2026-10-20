@@ -1,0 +1,70 @@
+{
+  "Hospital Plan – Value Plus": {
+    "spouse_cost": 312,
+    "child_cost": 156
+  },
+  "Hospital Value Plus": {
+    "spouse_cost": 312,
+    "child_cost": 156
+  },
+  "Hospital Plan – Platinum": {
+    "spouse_cost": 448,
+    "child_cost": 224
+  },
+  "Hospital Platinum": {
+    "spouse_cost": 448,
+    "child_cost": 224
+  },
+  "Hospital Plan – Executive": {
+    "spouse_cost": 512,
+    "child_cost": 256
+  },
+  "Hospital Executive": {
+    "spouse_cost": 512,
+    "child_cost": 256
+  },
+  "Comprehensive Plan – Value Plus": {
+    "spouse_cost": 486,
+    "child_cost": 266
+  },
+  "Comprehensive - Value Plus": {
+    "spouse_cost": 486,
+    "child_cost": 266
+  },
+  "Comprehensive Plan – Platinum": {
+    "spouse_cost": 715,
+    "child_cost": 358
+  },
+  "Comprehensive - Platinum": {
+    "spouse_cost": 715,
+    "child_cost": 358
+  },
+  "Comprehensive Plan – Executive": {
+    "spouse_cost": 739,
+    "child_cost": 394
+  },
+  "Comprehensive - Executive": {
+    "spouse_cost": 739,
+    "child_cost": 394
+  },
+  "Day-to-Day Plan": {
+    "spouse_cost": 289,
+    "child_cost": 193
+  },
+  "Day to Day Single": {
+    "spouse_cost": 289,
+    "child_cost": 193
+  },
+  "Senior Hospital Plan": {
+    "spouse_cost": 580,
+    "child_cost": 0
+  },
+  "Senior Day-to-Day Plan": {
+    "spouse_cost": 425,
+    "child_cost": 0
+  },
+  "Senior Comprehensive Plan": {
+    "spouse_cost": 875,
+    "child_cost": 0
+  }
+}

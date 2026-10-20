@@ -1,0 +1,325 @@
+'use client';
+
+import Link from 'next/link';
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/contexts/auth-context';
+import { SidebarLayout } from '@/components/layout/sidebar-layout';
+import { InlinePageLoading } from '@/components/layout/page-loading';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { authFetch } from '@/lib/auth-fetch';
+import { Bell, FileText, AlertTriangle, CheckCircle, Clock } from 'lucide-react';
+
+export default function ClaimsAssessorDashboardPage() {
+  const router = useRouter();
+  const { user, loading, isAuthenticated } = useAuth();
+  const [stats, setStats] = useState({
+    pendingClaims: 0,
+    preauthRequests: 0,
+    fraudCases: 0,
+    approvedToday: 0,
+    approvedTodayAmount: 0,
+    newGopIntakes: 0,
+  });
+  const [recentClaims, setRecentClaims] = useState<any[]>([]);
+  const [loadingData, setLoadingData] = useState(true);
+
+  useEffect(() => {
+    if (!loading && !isAuthenticated) {
+      router.push('/login');
+    }
+  }, [loading, isAuthenticated, router]);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      fetchDashboardData();
+    }
+  }, [isAuthenticated]);
+
+  const fetchDashboardData = async () => {
+    try {
+      setLoadingData(true);
+      const [statsRes, claimsRes, gopRes] = await Promise.all([
+        authFetch('/api/claims-assessor/dashboard'),
+        authFetch('/api/claims-assessor/claims?limit=5'),
+        authFetch('/api/gop-notifications'),
+      ]);
+      
+      const statsData = await statsRes.json();
+      const claimsData = await claimsRes.json();
+      const gopData = gopRes.ok ? await gopRes.json() : { newGopCount: 0 };
+
+      if (!statsRes.ok) {
+        throw new Error(statsData?.error || 'Failed to load dashboard stats');
+      }
+
+      if (!claimsRes.ok) {
+        throw new Error(claimsData?.error || 'Failed to load recent claims');
+      }
+      
+      setStats({
+        pendingClaims: statsData.stats?.pending_review ?? 0,
+        preauthRequests: statsData.stats?.preauth_requests ?? 0,
+        fraudCases: statsData.stats?.fraud_alerts ?? 0,
+        approvedToday: statsData.stats?.approved_today ?? statsData.stats?.approved_claims ?? 0,
+        approvedTodayAmount: statsData.stats?.approved_today_amount ?? statsData.stats?.total_approved ?? 0,
+        newGopIntakes: gopData.newGopCount ?? 0,
+      });
+      setRecentClaims(claimsData.claims || []);
+    } catch (error) {
+      console.error('Error fetching dashboard data:', error);
+    } finally {
+      setLoadingData(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <SidebarLayout>
+        <InlinePageLoading
+          title="Claims Dashboard"
+          description="Preparing claims operations"
+          message="Loading claims workspace..."
+        />
+      </SidebarLayout>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return null;
+  }
+
+  if (loadingData) {
+    return (
+      <SidebarLayout>
+        <InlinePageLoading
+          title="Claims Dashboard"
+          description={`Welcome back, ${user?.firstName ?? 'Claims Team'}! Here's your claims overview`}
+          message="Loading claims, pre-auth, and fraud metrics..."
+        />
+      </SidebarLayout>
+    );
+  }
+
+  return (
+    <SidebarLayout>
+      <div className="space-y-6">
+        {/* Header */}
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Claims Dashboard</h1>
+          <p className="text-gray-600 mt-1">Welcome back, {user?.firstName}! Here's your claims overview</p>
+        </div>
+
+        {/* Key Metrics */}
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-4">
+          <div
+            className="relative overflow-hidden rounded-lg border border-r-0 bg-gradient-to-t from-background to-muted transition-all duration-200 hover:shadow-lg group"
+            style={{
+              "--glow-color": "rgba(16, 185, 129, 1)",
+              "--glow-color-via": "rgba(16, 185, 129, 0.075)",
+              "--glow-color-to": "rgba(16, 185, 129, 0.2)",
+            } as React.CSSProperties}
+          >
+            <div className="absolute inset-0 rounded-[inherit] bg-gradient-to-r from-transparent from-40% via-[var(--glow-color-via)] to-[var(--glow-color-to)] via-70% z-10 pointer-events-none"></div>
+            <div className="absolute w-[5px] h-[60%] bg-[var(--glow-color)] right-0 top-1/2 -translate-y-1/2 rounded-l shadow-[-2px_0_10px_var(--glow-color)] group-hover:translate-x-full transition-all duration-200 z-20"></div>
+            <CardContent className="pt-6 relative z-30">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-600">Pending Claims</p>
+                  <p className="text-3xl font-bold mt-1">{stats.pendingClaims}</p>
+                  <p className="text-xs text-gray-600 mt-1">{stats.pendingClaims === 0 ? 'No claims yet' : 'Awaiting review'}</p>
+                </div>
+                <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                  <FileText className="w-6 h-6 text-green-600" />
+                </div>
+              </div>
+            </CardContent>
+          </div>
+
+          <div
+            className="relative overflow-hidden rounded-lg border border-r-0 bg-gradient-to-t from-background to-muted transition-all duration-200 hover:shadow-lg group"
+            style={{
+              "--glow-color": "rgba(239, 68, 68, 1)",
+              "--glow-color-via": "rgba(239, 68, 68, 0.075)",
+              "--glow-color-to": "rgba(239, 68, 68, 0.2)",
+            } as React.CSSProperties}
+          >
+            <div className="absolute inset-0 rounded-[inherit] bg-gradient-to-r from-transparent from-40% via-[var(--glow-color-via)] to-[var(--glow-color-to)] via-70% z-10 pointer-events-none"></div>
+            <div className="absolute w-[5px] h-[60%] bg-[var(--glow-color)] right-0 top-1/2 -translate-y-1/2 rounded-l shadow-[-2px_0_10px_var(--glow-color)] group-hover:translate-x-full transition-all duration-200 z-20"></div>
+            <CardContent className="pt-6 relative z-30">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-600">New GOPs</p>
+                  <p className="text-3xl font-bold mt-1 text-red-600">{stats.newGopIntakes}</p>
+                  <p className="text-xs text-gray-600 mt-1">{stats.newGopIntakes === 0 ? 'No new uploads' : 'Awaiting claims review'}</p>
+                </div>
+                <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center">
+                  <Bell className="w-6 h-6 text-red-600" />
+                </div>
+              </div>
+            </CardContent>
+          </div>
+
+          <div
+            className="relative overflow-hidden rounded-lg border border-r-0 bg-gradient-to-t from-background to-muted transition-all duration-200 hover:shadow-lg group"
+            style={{
+              "--glow-color": "rgba(234, 179, 8, 1)",
+              "--glow-color-via": "rgba(234, 179, 8, 0.075)",
+              "--glow-color-to": "rgba(234, 179, 8, 0.2)",
+            } as React.CSSProperties}
+          >
+            <div className="absolute inset-0 rounded-[inherit] bg-gradient-to-r from-transparent from-40% via-[var(--glow-color-via)] to-[var(--glow-color-to)] via-70% z-10 pointer-events-none"></div>
+            <div className="absolute w-[5px] h-[60%] bg-[var(--glow-color)] right-0 top-1/2 -translate-y-1/2 rounded-l shadow-[-2px_0_10px_var(--glow-color)] group-hover:translate-x-full transition-all duration-200 z-20"></div>
+            <CardContent className="pt-6 relative z-30">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-600">Pre-Auth Requests</p>
+                  <p className="text-3xl font-bold mt-1 text-yellow-600">{stats.preauthRequests}</p>
+                  <p className="text-xs text-gray-600 mt-1">{stats.preauthRequests === 0 ? 'No requests' : 'Pending authorization'}</p>
+                </div>
+                <div className="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
+                  <Clock className="w-6 h-6 text-yellow-600" />
+                </div>
+              </div>
+            </CardContent>
+          </div>
+
+          <div
+            className="relative overflow-hidden rounded-lg border border-r-0 bg-gradient-to-t from-background to-muted transition-all duration-200 hover:shadow-lg group"
+            style={{
+              "--glow-color": "rgba(239, 68, 68, 1)",
+              "--glow-color-via": "rgba(239, 68, 68, 0.075)",
+              "--glow-color-to": "rgba(239, 68, 68, 0.2)",
+            } as React.CSSProperties}
+          >
+            <div className="absolute inset-0 rounded-[inherit] bg-gradient-to-r from-transparent from-40% via-[var(--glow-color-via)] to-[var(--glow-color-to)] via-70% z-10 pointer-events-none"></div>
+            <div className="absolute w-[5px] h-[60%] bg-[var(--glow-color)] right-0 top-1/2 -translate-y-1/2 rounded-l shadow-[-2px_0_10px_var(--glow-color)] group-hover:translate-x-full transition-all duration-200 z-20"></div>
+            <CardContent className="pt-6 relative z-30">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-600">Fraud Cases</p>
+                  <p className="text-3xl font-bold mt-1 text-red-600">{stats.fraudCases}</p>
+                  <p className="text-xs text-gray-600 mt-1">{stats.fraudCases === 0 ? 'No cases' : 'Requires investigation'}</p>
+                </div>
+                <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center">
+                  <AlertTriangle className="w-6 h-6 text-red-600" />
+                </div>
+              </div>
+            </CardContent>
+          </div>
+
+          <div
+            className="relative overflow-hidden rounded-lg border border-r-0 bg-gradient-to-t from-background to-muted transition-all duration-200 hover:shadow-lg group"
+            style={{
+              "--glow-color": "rgba(34, 197, 94, 1)",
+              "--glow-color-via": "rgba(34, 197, 94, 0.075)",
+              "--glow-color-to": "rgba(34, 197, 94, 0.2)",
+            } as React.CSSProperties}
+          >
+            <div className="absolute inset-0 rounded-[inherit] bg-gradient-to-r from-transparent from-40% via-[var(--glow-color-via)] to-[var(--glow-color-to)] via-70% z-10 pointer-events-none"></div>
+            <div className="absolute w-[5px] h-[60%] bg-[var(--glow-color)] right-0 top-1/2 -translate-y-1/2 rounded-l shadow-[-2px_0_10px_var(--glow-color)] group-hover:translate-x-full transition-all duration-200 z-20"></div>
+            <CardContent className="pt-6 relative z-30">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-600">Approved Today</p>
+                  <p className="text-3xl font-bold mt-1 text-green-600">{stats.approvedToday}</p>
+                  <p className="text-xs text-gray-600 mt-1">R {Number(stats.approvedTodayAmount || 0).toLocaleString()} total</p>
+                </div>
+                <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                  <CheckCircle className="w-6 h-6 text-green-600" />
+                </div>
+              </div>
+            </CardContent>
+          </div>
+        </div>
+
+        {/* Quick Actions */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Quick Actions</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+              <button 
+                onClick={() => router.push('/claims/queue')}
+                className="p-4 border rounded-lg hover:bg-green-50 hover:border-green-300 transition-colors text-left group"
+              >
+                <div className="w-10 h-10 bg-green-100 group-hover:bg-green-200 rounded-lg flex items-center justify-center mb-2 transition-colors">
+                  <FileText className="w-5 h-5 text-green-600" />
+                </div>
+                <p className="font-medium">Claims Queue</p>
+                <p className="text-xs text-gray-500">Review claims</p>
+              </button>
+
+              <button 
+                onClick={() => router.push('/claims/preauth')}
+                className="p-4 border rounded-lg hover:bg-green-50 hover:border-green-300 transition-colors text-left group"
+              >
+                <div className="w-10 h-10 bg-green-100 group-hover:bg-green-200 rounded-lg flex items-center justify-center mb-2 transition-colors">
+                  <Clock className="w-5 h-5 text-green-600" />
+                </div>
+                <p className="font-medium">Pre-Auth</p>
+                <p className="text-xs text-gray-500">Authorization requests</p>
+              </button>
+
+              <button 
+                onClick={() => router.push('/claims/fraud')}
+                className="p-4 border rounded-lg hover:bg-green-50 hover:border-green-300 transition-colors text-left group"
+              >
+                <div className="w-10 h-10 bg-green-100 group-hover:bg-green-200 rounded-lg flex items-center justify-center mb-2 transition-colors">
+                  <AlertTriangle className="w-5 h-5 text-green-600" />
+                </div>
+                <p className="font-medium">Fraud Cases</p>
+                <p className="text-xs text-gray-500">Investigate fraud</p>
+              </button>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Recent Claims */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Recent Claims</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {recentClaims.length === 0 ? (
+              <div className="text-center py-8 text-gray-500">
+                <FileText className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                <p className="text-sm">No recent claims</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {recentClaims.map((claim) => (
+                  <Link
+                    key={claim.id}
+                    href={`/claims/${claim.id}`}
+                    className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 hover:border-green-300 transition-colors group"
+                  >
+                    <div className="flex-1">
+                      <p className="font-medium group-hover:text-green-700 transition-colors">{claim.claim_number}</p>
+                      <p className="text-sm text-gray-600">
+                        {claim.member?.first_name} {claim.member?.last_name} - {claim.provider?.name}
+                      </p>
+                      <p className="text-xs text-gray-500">{new Date(claim.submission_date).toLocaleString()}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-bold">R{parseFloat(claim.claimed_amount).toLocaleString()}</p>
+                      <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                        claim.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                        claim.status === 'approved' ? 'bg-green-100 text-green-800' :
+                        claim.status === 'pended' ? 'bg-orange-100 text-orange-800' :
+                        'bg-red-100 text-red-800'
+                      }`}>
+                        {claim.status.toUpperCase()}
+                      </span>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+    </SidebarLayout>
+  );
+}
