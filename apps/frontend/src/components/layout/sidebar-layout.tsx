@@ -5,6 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/auth-context';
+import { useSidebarPreference } from '@/contexts/sidebar-preference-context';
 import { Button } from '@/components/ui/button';
 import { InlinePageLoading } from '@/components/layout/page-loading';
 import { authFetch } from '@/lib/auth-fetch';
@@ -22,11 +23,31 @@ interface SidebarLayoutProps {
   children: React.ReactNode;
 }
 
+function getNavigationSection(href: string): string {
+  if (href.startsWith('/admin/')) {
+    if (['/admin/audit', '/admin/roles', '/admin/rules', '/admin/data-import'].includes(href)) return 'Governance';
+    if (['/admin/providers', '/admin/brokers', '/admin/group-setup'].includes(href)) return 'Network';
+    return 'Operations';
+  }
+
+  if (href.startsWith('/marketing/')) {
+    if (['/marketing/analytics', '/marketing/budget', '/marketing/reports'].includes(href)) return 'Insights';
+    if (['/marketing/onboarding', '/marketing/ai-automation', '/marketing/consent'].includes(href)) return 'Experience';
+    return 'Growth';
+  }
+
+  return 'Workspace';
+}
+
 export function SidebarLayout({ children }: SidebarLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const sidebarPreference = useSidebarPreference();
+  const [fallbackCollapsed, setFallbackCollapsed] = useState(false);
+  const sidebarCollapsed = sidebarPreference?.collapsed ?? fallbackCollapsed;
+  const setSidebarCollapsed = sidebarPreference?.setCollapsed ?? setFallbackCollapsed;
   const [newApplicationsCount, setNewApplicationsCount] = useState(0);
   const [newGopCount, setNewGopCount] = useState(0);
+  const [pendingHref, setPendingHref] = useState<string | null>(null);
   const pathname = usePathname();
   const router = useRouter();
   const { user, loading, logout } = useAuth();
@@ -34,6 +55,10 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
   const isAdmin = userRoles.includes('system_admin');
   const isAuthorizationUser = userRoles.includes('ambulance_operator') || userRoles.includes('africa_assist_authorization');
   const isDashboardRoute = pathname === '/dashboard' || pathname?.endsWith('/dashboard');
+
+  useEffect(() => {
+    setPendingHref(null);
+  }, [pathname]);
 
   useEffect(() => {
     if (!sidebarOpen) return;
@@ -133,12 +158,8 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
   const getNavigationForRole = (): NavItem[] => {
     // If no user, return empty navigation
     if (!user) {
-      console.log('No user found, returning empty navigation');
       return [];
     }
-
-    console.log('User object:', user);
-    console.log('User roles:', user?.roles);
 
     const userRoles = user?.roles || [];
     const isAdmin = userRoles.includes('system_admin');
@@ -155,21 +176,6 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
     const isAfricaAssistAuthorization = userRoles.includes('africa_assist_authorization');
     const isAuthorizationUser = isAmbulanceOperator || isAfricaAssistAuthorization;
     const isMember = userRoles.includes('member');
-
-    console.log('Role checks:', {
-      isAdmin,
-      isOperationsManager,
-      isBroker,
-      isClaimsAssessor,
-      isComplianceOfficer,
-      isFinanceManager,
-      isMarketingManager,
-      isProvider,
-      isCallCentreAgent,
-      isAmbulanceOperator,
-      isAfricaAssistAuthorization,
-      isMember
-    });
 
     // Admin navigation
     if (isAdmin) {
@@ -1083,6 +1089,15 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
   };
 
   const navigation = getNavigationForRole();
+  const navigationGroups = navigation.reduce<Array<{ title: string; items: NavItem[] }>>((groups, item) => {
+    const title = groups.length === 0 ? 'Overview' : getNavigationSection(item.href);
+    const group = groups[groups.length - 1];
+    if (group?.title === title) group.items.push(item);
+    else groups.push({ title, items: [item] });
+    return groups;
+  }, []);
+  const accountName = [user?.firstName, user?.lastName].filter(Boolean).join(' ') || 'Your account';
+  const accountInitial = (user?.firstName || user?.email || 'K').charAt(0).toUpperCase();
   const currentPage = navigation.find((item) => item.href === pathname)?.name
     || navigation.find((item) => pathname?.startsWith(`${item.href}/`))?.name
     || 'Workspace';
@@ -1112,10 +1127,11 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
   }
 
   return (
-    <div className="min-h-screen bg-[#f8fbff] text-[#06152d]">
+    <div className="premium-workspace min-h-screen bg-[#f8fbff] text-[#06152d]">
       {/* Mobile sidebar backdrop */}
       {sidebarOpen && (
         <div
+          data-workspace-backdrop
           className="fixed inset-0 bg-[#06152d]/50 z-40 lg:hidden"
           onClick={() => setSidebarOpen(false)}
           aria-hidden="true"
@@ -1125,8 +1141,10 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
       {/* Sidebar */}
       <aside
         aria-label="Workspace navigation"
+        data-workspace-sidebar
+        data-sidebar-collapsed={sidebarCollapsed}
         className={`
-          fixed top-0 left-0 z-40 h-screen w-72 max-w-[85vw] transition-all duration-300 ease-in-out
+          fixed top-0 left-0 z-40 h-screen w-72 max-w-[85vw] transition-[width,transform] duration-200 ease-in-out motion-reduce:transition-none
           bg-white border-r border-[#dce8f7]
           ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
           lg:translate-x-0
@@ -1135,7 +1153,7 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
       >
         <div className="flex flex-col h-full">
           {/* Logo */}
-          <div className={`flex h-16 shrink-0 items-center justify-between border-b border-[#dce8f7] px-4 ${sidebarCollapsed ? 'lg:translate-x-[3px] lg:justify-center lg:gap-px lg:px-[3px]' : ''}`}>
+          <div className={`flex h-16 shrink-0 items-center justify-between border-b border-[#dce8f7] px-4 ${sidebarCollapsed ? 'lg:translate-x-[2px] lg:justify-center lg:gap-px lg:px-[3px]' : ''}`}>
             <Link href="/dashboard" className={`flex items-center ${sidebarCollapsed ? 'lg:hidden' : ''}`} aria-label="KERVOX dashboard">
               <Image src="/kervox-logo.svg" alt="" width={157} height={32} className="h-8 w-auto" />
             </Link>
@@ -1165,59 +1183,90 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
           </div>
 
           {/* Navigation */}
-          <nav aria-label="Primary navigation" className={`flex-1 space-y-1 overflow-y-auto px-3 py-4 ${sidebarCollapsed ? 'lg:px-2' : ''}`}>
-            <p className={`px-3 pb-2 pt-1 text-[10px] font-bold uppercase tracking-[0.2em] text-[#718096] ${sidebarCollapsed ? 'lg:hidden' : ''}`}>Your workspace</p>
-            {navigation.map((item) => {
-              const isActive = pathname === item.href || pathname?.startsWith(`${item.href}/`);
-              
-              return (
-                <Link
-                  key={item.name}
-                  href={item.href}
-                  className="block"
-                  title={sidebarCollapsed ? item.name : undefined}
-                  aria-current={isActive ? 'page' : undefined}
-                  onClick={() => setSidebarOpen(false)}
-                >
-                  <div className="relative">
-                    <div
-                      className={`
-                        w-full min-h-10 px-3 py-2 text-sm rounded-lg flex items-center gap-3 relative transition-colors duration-200
-                        ${isActive 
-                          ? 'bg-[#eff6ff] text-[#1d4ed8] font-semibold' 
-                          : 'text-[#52657d] hover:bg-[#f1f7ff] hover:text-[#06152d]'
-                        }
-                        ${sidebarCollapsed ? 'lg:justify-center lg:px-2' : ''}
-                      `}
-                    >
-                      {isActive && <span aria-hidden="true" className="absolute left-0 top-2 bottom-2 w-[3px] rounded-full bg-[#2563eb]" />}
-                      <span className="relative z-30">{item.icon}</span>
-                      <span className={`relative z-30 flex-1 ${sidebarCollapsed ? 'lg:hidden' : ''}`}>{item.name}</span>
-                      {item.badge && item.badge > 0 && (
-                        <span className={`relative z-30 inline-flex items-center justify-center rounded-full bg-red-600 px-2 py-0.5 text-xs font-bold leading-none text-white ${sidebarCollapsed ? 'lg:hidden' : ''}`}>
-                          {item.badge}
-                        </span>
-                      )}
-                    </div>
-                    {sidebarCollapsed && item.badge && item.badge > 0 && (
-                      <span className="absolute -right-1 -top-1 z-40 hidden h-5 w-5 items-center justify-center rounded-full bg-red-600 text-xs font-bold leading-none text-white lg:inline-flex">
-                        {item.badge}
-                      </span>
-                    )}
-                  </div>
-                </Link>
-              );
-            })}
+          <nav aria-label="Primary navigation" data-workspace-nav className={`min-h-0 min-w-0 flex-1 overflow-x-hidden overflow-y-auto px-3 py-4 ${sidebarCollapsed ? 'lg:px-2' : ''}`}>
+            {navigationGroups.map((section, index) => (
+              <div key={`${section.title}-${index}`} data-workspace-section className={`mb-5 last:mb-0 ${sidebarCollapsed ? 'lg:mb-0' : ''}`}>
+                <p data-workspace-section-label className={`px-3 pb-2 pt-1 text-[10px] font-bold uppercase tracking-[0.2em] text-[#718096] ${sidebarCollapsed ? 'lg:hidden' : ''}`}>{section.title}</p>
+                <div className="space-y-1">
+                  {section.items.map((item) => {
+                    const isActive = pathname === item.href || pathname?.startsWith(`${item.href}/`);
+                    const hasBadge = (item.badge ?? 0) > 0;
+
+                    return (
+                      <Link
+                        key={item.name}
+                        href={item.href}
+                        className="block"
+                        title={sidebarCollapsed ? item.name : undefined}
+                        aria-current={isActive ? 'page' : undefined}
+                        onClick={(event) => {
+                          setSidebarOpen(false);
+                          if (event.button === 0 && !event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey) {
+                            setPendingHref(isActive ? null : item.href);
+                          }
+                        }}
+                        aria-busy={pendingHref === item.href || undefined}
+                      >
+                        <div className="relative">
+                          <div
+                            className={`
+                              w-full min-h-10 px-3 py-2 text-sm rounded-lg flex items-center gap-3 relative transition-colors duration-200
+                              ${isActive
+                                ? 'bg-[#eff6ff] text-[#1d4ed8] font-semibold'
+                                : 'text-[#52657d] hover:bg-[#f1f7ff] hover:text-[#06152d]'
+                              }
+                              ${sidebarCollapsed ? 'lg:justify-center lg:gap-0 lg:px-0' : ''}
+                            `}
+                            data-workspace-nav-item
+                          >
+                            {isActive && <span aria-hidden="true" className="absolute left-0 top-2 bottom-2 w-[3px] rounded-full bg-[#2563eb]" />}
+                            <span className="relative z-30 shrink-0" aria-hidden="true">
+                              {pendingHref === item.href
+                                ? <span className="block h-5 w-5 animate-spin rounded-full border-2 border-current border-t-transparent motion-reduce:animate-none" />
+                                : item.icon}
+                            </span>
+                            <span className={`relative z-30 flex-1 ${sidebarCollapsed ? 'lg:hidden' : ''}`}>{item.name}</span>
+                            {hasBadge && (
+                              <span className={`relative z-30 inline-flex items-center justify-center rounded-full bg-red-600 px-2 py-0.5 text-xs font-bold leading-none text-white ${sidebarCollapsed ? 'lg:hidden' : ''}`}>
+                                {item.badge}
+                              </span>
+                            )}
+                          </div>
+                          {sidebarCollapsed && hasBadge && (
+                            <span
+                              className="absolute right-0 top-0 z-40 hidden h-[18px] min-w-[18px] items-center justify-center rounded-full bg-red-600 px-0.5 text-[9px] font-bold leading-none text-white lg:inline-flex"
+                              title={`${item.badge} new ${item.name.toLowerCase()}`}
+                            >
+                              {(item.badge ?? 0) > 99 ? '99+' : item.badge}
+                            </span>
+                          )}
+                        </div>
+                      </Link>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
           </nav>
 
-          {/* Logout button */}
-          <div className={`border-t border-[#dce8f7] px-3 pb-3 pt-3 ${sidebarCollapsed ? 'lg:px-2' : ''}`}>
-            {user && <div className={`mb-3 truncate px-3 text-xs text-[#52657d] ${sidebarCollapsed ? 'lg:hidden' : ''}`} title={user.email}>{user.email}</div>}
+          {/* Account and logout */}
+          <div data-workspace-footer className={`border-t border-[#dce8f7] px-3 pb-3 pt-3 ${sidebarCollapsed ? 'lg:px-2' : ''}`}>
+            {user && (
+              <div data-workspace-account className={`mb-2 flex min-w-0 items-center gap-3 rounded-lg px-2 py-2 ${sidebarCollapsed ? 'lg:justify-center lg:px-0' : ''}`}>
+                <span data-workspace-avatar className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-sm font-semibold" aria-hidden="true">{accountInitial}</span>
+                <div className={`min-w-0 ${sidebarCollapsed ? 'lg:hidden' : ''}`}>
+                  <p className="truncate text-sm font-semibold text-[#06152d]">{accountName}</p>
+                  <p className="truncate text-xs text-[#52657d]" title={user.email}>{user.email}</p>
+                </div>
+              </div>
+            )}
             <button 
+              type="button"
               onClick={handleLogout}
+              data-workspace-logout
               className={`
-                w-full h-10 px-3 text-sm rounded-md border flex items-center gap-3 transition-colors duration-200
-                text-[#52657d] hover:text-[#06152d] bg-white hover:bg-[#f1f7ff] border-[#dce8f7]
+                w-full h-10 px-3 text-sm rounded-md flex items-center gap-3 transition-colors duration-200
+                text-[#52657d] hover:text-[#06152d] hover:bg-[#f1f7ff]
                 ${sidebarCollapsed ? 'lg:justify-center lg:px-2' : ''}
               `}
               title={sidebarCollapsed ? "Log out" : undefined}
@@ -1234,16 +1283,16 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
       {/* Main content */}
       <div
         className={`
-          transition-all duration-300 ease-in-out
+          transition-[margin-left] duration-200 ease-in-out motion-reduce:transition-none
           ${sidebarCollapsed ? 'lg:ml-16' : 'lg:ml-64'}
         `}
       >
         {/* Top bar */}
-        <header className="sticky top-0 z-30 bg-white border-b border-[#dce8f7]">
+        <header data-workspace-topbar className="sticky top-0 z-30 bg-white border-b border-[#dce8f7]">
           <div className="flex items-center justify-between h-16 px-4">
             {/* Mobile menu button */}
             <button
-              onClick={() => { setSidebarCollapsed(false); setSidebarOpen(!sidebarOpen); }}
+              onClick={() => setSidebarOpen(!sidebarOpen)}
               className="lg:hidden p-2 rounded-md hover:bg-[#f1f7ff]"
               aria-label={sidebarOpen ? 'Close navigation' : 'Open navigation'}
               aria-expanded={sidebarOpen}
@@ -1279,7 +1328,7 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
         </header>
 
         {/* Page content */}
-        <main className={`workspace-main p-4 sm:p-6 lg:p-8 ${isDashboardRoute ? 'dashboard-main' : ''} ${pathname?.startsWith('/marketing') ? 'kervox-marketing' : ''}`}>
+        <main data-workspace-content className={`workspace-main p-4 sm:p-6 lg:p-8 ${isDashboardRoute ? 'dashboard-main' : ''} ${pathname?.startsWith('/marketing') ? 'kervox-marketing' : ''}`}>
           {children}
         </main>
       </div>

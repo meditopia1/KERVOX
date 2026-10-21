@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useSearchParams } from 'next/navigation'
+import Image from 'next/image'
 import Step1Personal from '@/components/apply-steps/Step1Personal'
 import Step2Documents from '@/components/apply-steps/Step2Documents'
 import Step5Dependents from '@/components/apply-steps/Step5Dependents'
@@ -59,13 +60,13 @@ export default function ApplyPage() {
   const CurrentStepComponent = steps[currentStep - 1].component
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div data-kervox-application className="min-h-screen bg-[#f7f5f0] text-[#2b2926]">
       {/* Header */}
-      <div className="bg-gradient-to-r from-green-600 to-green-700 border-b shadow-md">
+      <div data-kervox-application-header className="border-b border-[#573a30] bg-[#2b2926] shadow-[0_16px_42px_rgba(49,37,28,0.16)]">
         <div className="max-w-4xl mx-auto px-4 py-6">
           <div className="mb-3 flex items-center gap-3">
-            <span aria-hidden="true" className="flex h-12 w-12 items-center justify-center rounded-lg bg-blue-600 font-bold text-white">K</span>
-            <h1 className="text-3xl font-bold text-white">KERVOX Application</h1>
+            <span aria-hidden="true" className="flex h-12 w-12 items-center justify-center rounded-lg border border-white/20 bg-[#fffefa] shadow-[0_8px_22px_rgba(0,0,0,.17)]"><Image src="/kervox-k.svg" alt="" width={36} height={36} className="h-9 w-9 object-contain" /></span>
+            <h1 className="text-2xl font-bold text-white sm:text-3xl">KERVOX Application</h1>
           </div>
           {(source === 'broker' || source === 'call-centre') && (
             <div className="inline-flex items-center rounded-full bg-white/15 px-3 py-1 text-sm text-white border border-white/20 mb-3">
@@ -76,12 +77,12 @@ export default function ApplyPage() {
             <div className="bg-white/10 backdrop-blur-sm rounded-lg px-4 py-3 border border-white/20">
               <div className="flex flex-wrap items-center gap-3">
                 <span className="text-sm text-white/90 font-medium">Selected Plan:</span>
-                <span className="text-xl font-bold text-yellow-300">{planName}</span>
+                <span className="text-xl font-bold text-[#f2d6b8]">{planName}</span>
                 {monthlyPrice && (
                   <>
                     <span className="text-white/60">|</span>
                     <span className="text-sm text-white/90 font-medium">Monthly Premium:</span>
-                    <span className="text-2xl font-bold text-yellow-300">R{monthlyPrice}</span>
+                    <span className="text-2xl font-bold text-[#f2d6b8]">R{monthlyPrice}</span>
                   </>
                 )}
                 {(adults || children) && (
@@ -102,7 +103,7 @@ export default function ApplyPage() {
       </div>
 
       {/* Progress Bar */}
-      <div className="bg-white border-b">
+      <div className="border-b border-[#e6e0d7] bg-[#fffefa] shadow-[0_1px_3px_rgba(49,37,28,0.04)]">
         <div className="max-w-4xl mx-auto px-4 py-3">
           <div className="flex items-center justify-between">
             {steps.map((step, idx) => (
@@ -110,12 +111,14 @@ export default function ApplyPage() {
                 <div className="flex flex-col items-center flex-1">
                   <button
                     onClick={() => goToStep(step.number)}
+                    aria-label={`Go to ${step.title}`}
+                    aria-current={currentStep === step.number ? 'step' : undefined}
                     className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold transition-colors ${
                       currentStep === step.number
-                        ? 'bg-green-600 text-white'
+                        ? 'bg-[#a64c34] text-white shadow-[0_4px_12px_rgba(166,76,52,.22)]'
                         : currentStep > step.number
-                        ? 'bg-green-100 text-green-600'
-                        : 'bg-gray-200 text-gray-500'
+                        ? 'bg-[#f5e6dd] text-[#873b29]'
+                        : 'bg-[#eee9e1] text-[#81796e]'
                     }`}
                   >
                     {step.number}
@@ -123,7 +126,7 @@ export default function ApplyPage() {
                   <span className="text-[10px] mt-1 text-center hidden sm:block leading-tight">{step.title}</span>
                 </div>
                 {idx < steps.length - 1 && (
-                  <div className={`h-0.5 flex-1 mx-1 ${currentStep > step.number ? 'bg-green-600' : 'bg-gray-200'}`} />
+                  <div className={`h-0.5 flex-1 mx-1 ${currentStep > step.number ? 'bg-[#a64c34]' : 'bg-[#e6e0d7]'}`} />
                 )}
               </div>
             ))}
@@ -133,7 +136,7 @@ export default function ApplyPage() {
 
       {/* Step Content */}
       <div className="max-w-4xl mx-auto px-4 py-2">
-        <div className="bg-white rounded-lg shadow-sm p-3">
+        <div key={currentStep} data-kervox-application-step className="rounded-xl border border-[#e6e0d7] bg-[#fffefa] p-5 shadow-[0_18px_48px_rgba(49,37,28,0.055)] sm:p-8">
           <CurrentStepComponent
             data={applicationData}
             updateData={updateData}

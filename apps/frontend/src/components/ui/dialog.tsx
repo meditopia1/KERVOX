@@ -22,7 +22,7 @@ export function Dialog({ open, onOpenChange, children }: DialogProps) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" role="presentation">
-      <div className="fixed inset-0 bg-[#06152d]/50" onClick={() => onOpenChange(false)} aria-hidden="true" />
+      <div data-kervox-dialog-backdrop className="fixed inset-0 bg-[#06152d]/50" onClick={() => onOpenChange(false)} aria-hidden="true" />
       <div className="relative z-50 max-h-[90vh] max-w-full overflow-y-auto" role="dialog" aria-modal="true" aria-label="Dialog">{children}</div>
     </div>
   );
@@ -35,7 +35,7 @@ interface DialogContentProps {
 
 export function DialogContent({ children, className = '' }: DialogContentProps) {
   return (
-    <div className={`rounded-xl border border-[#dce8f7] bg-white shadow-[0_16px_48px_rgba(6,21,45,0.16)] ${className}`}>
+    <div data-kervox-dialog-content className={`rounded-xl border border-[#dce8f7] bg-white shadow-[0_16px_48px_rgba(6,21,45,0.16)] ${className}`}>
       {children}
     </div>
   );

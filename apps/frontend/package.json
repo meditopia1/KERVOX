@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "dev": "node ./scripts/clean-dev-artifacts.js && next dev -p 3001",
+    "dev": "next dev -p 3001",
+    "dev:clean": "node ./scripts/clean-dev-artifacts.js && next dev -p 3001",
     "build": "next build",
     "start": "next start -p 3001",
     "lint": "next lint",
@@ -27,6 +28,7 @@
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.0",
     "date-fns": "^4.1.0",
+    "dotenv": "^17.2.4",
     "framer-motion": "^12.26.1",
     "hugeicons-react": "^0.3.0",
     "lucide-react": "^0.303.0",

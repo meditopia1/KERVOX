@@ -6,6 +6,7 @@ const Card = React.forwardRef<
   React.HTMLAttributes<HTMLDivElement>
 >(({ className, ...props }, ref) => (
   <div
+    data-kervox-card
     ref={ref}
     className={cn(
       'rounded-xl border border-[#dce8f7] bg-white text-card-foreground shadow-[0_2px_12px_rgba(6,21,45,0.04)]',

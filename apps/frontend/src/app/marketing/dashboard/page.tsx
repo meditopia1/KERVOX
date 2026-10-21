@@ -1,64 +1,85 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useCallback, useEffect, useState } from 'react';
+import Link from 'next/link';
+import {
+  ArrowRight,
+  BarChart3,
+  AlertCircle,
+  ClipboardList,
+  Megaphone,
+  Target,
+  UserPlus,
+  Users,
+} from 'lucide-react';
 import { useAuth } from '@/contexts/auth-context';
 import { SidebarLayout } from '@/components/layout/sidebar-layout';
 import { InlinePageLoading } from '@/components/layout/page-loading';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { DashboardMetricCard } from '@/components/dashboard/dashboard-metric-card';
 import { authFetch } from '@/lib/auth-fetch';
-import { 
-  Users, 
-  Megaphone, 
-  TrendingUp, 
-  UserPlus, 
-  Mail, 
-  MessageSquare, 
-  Phone,
-  Target,
-  DollarSign,
-  Clock,
-  CheckCircle,
-  AlertCircle,
-  BarChart3,
-  Zap
-} from 'lucide-react';
+
+type MarketingStats = {
+  totalLeads: number;
+  conversionRate: number;
+  pipeline: { new: number; contacted: number; qualified: number; converted: number };
+  lifecycle: { hot: number; warm: number; cold: number };
+  recentLeads: Array<{ name: string; email: string; source: string; status: string; score: number }>;
+  leadSources: Array<{ source: string; leads: number; conversion: number }>;
+};
+
+const quickActions = [
+  { label: 'Review leads', description: 'Work through your contact pipeline', href: '/marketing/leads', icon: Users },
+  { label: 'New campaign', description: 'Set up an outreach campaign', href: '/marketing/campaigns/new', icon: Megaphone },
+  { label: 'View analytics', description: 'Explore available performance data', href: '/marketing/analytics', icon: BarChart3 },
+  { label: 'Referral codes', description: 'Manage referral activity', href: '/marketing/referrals', icon: UserPlus },
+];
+
+const metricStyle = {
+  accentColor: '#a64c34',
+  glowFrom: 'rgba(166,76,52,.05)',
+  glowTo: 'rgba(166,76,52,.11)',
+  iconBackgroundClassName: 'bg-[#f7e9de]',
+};
 
 export default function MarketingDashboardPage() {
-  const router = useRouter();
   const { user } = useAuth();
-  const [stats, setStats] = useState<any>(null);
+  const [stats, setStats] = useState<MarketingStats | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
-  useEffect(() => {
-    fetchStats();
-  }, []);
+  const loadStats = useCallback(async () => {
+    setLoading(true);
+    setError('');
 
-  const fetchStats = async () => {
     try {
       const response = await authFetch('/api/marketing/dashboard');
       const data = await response.json();
 
-      if (!response.ok) {
-        throw new Error(data?.error || 'Failed to load dashboard data');
+      if (!response.ok || !data.stats) {
+        throw new Error(data?.error || 'Could not load your marketing overview.');
       }
 
-      setStats(data.stats || null);
-    } catch (error) {
-      console.error('Failed to fetch dashboard stats:', error);
-      setStats(null);
+      setStats(data.stats as MarketingStats);
+    } catch (cause) {
+      console.error('Failed to fetch marketing dashboard stats:', cause);
+      setError('Could not load your marketing overview. Please try again.');
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  if (loading) {
+  useEffect(() => {
+    void loadStats();
+  }, [loadStats]);
+
+  if (loading && !stats) {
     return (
       <SidebarLayout>
         <InlinePageLoading
-          title="Marketing Dashboard"
-          description="Preparing your marketing overview"
-          message="Loading campaigns, leads, and channel metrics..."
+          title="Marketing dashboard"
+          description="Preparing your workspace overview"
+          message="Loading current lead records..."
         />
       </SidebarLayout>
     );
@@ -67,531 +88,180 @@ export default function MarketingDashboardPage() {
   if (!stats) {
     return (
       <SidebarLayout>
-        <div className="text-center py-12">
-          <p className="text-gray-600">Failed to load dashboard data</p>
+        <div role="alert" className="mx-auto max-w-xl rounded-xl border border-[#e6d9cd] bg-white p-8 text-center shadow-sm">
+          <AlertCircle aria-hidden="true" className="mx-auto h-9 w-9 text-[#a64c34]" />
+          <h1 className="mt-4 text-xl font-semibold text-[#2d241e]">Overview unavailable</h1>
+          <p className="mt-2 text-sm text-[#71665c]">{error}</p>
+          <button
+            type="button"
+            onClick={() => void loadStats()}
+            className="mt-5 rounded-lg bg-[#a64c34] px-4 py-2 text-sm font-semibold text-white hover:bg-[#873b29] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#a64c34]"
+          >
+            Try again
+          </button>
         </div>
       </SidebarLayout>
     );
   }
 
+  const pipelineRows = [
+    { label: 'New leads', value: stats.pipeline.new, tone: 'bg-[#c77853]' },
+    { label: 'Contacted', value: stats.pipeline.contacted, tone: 'bg-[#bd9958]' },
+    { label: 'Applicants', value: stats.pipeline.qualified, tone: 'bg-[#718c80]' },
+    { label: 'Converted', value: stats.pipeline.converted, tone: 'bg-[#577a67]' },
+  ];
+  const scoreRows = [
+    { label: 'High score', range: 'Score 80+', value: stats.lifecycle.hot, tone: 'text-[#a64c34] bg-[#f7e9de]' },
+    { label: 'Mid score', range: 'Score 60–79', value: stats.lifecycle.warm, tone: 'text-[#8c7139] bg-[#f6efdc]' },
+    { label: 'Lower score', range: 'Score below 60', value: stats.lifecycle.cold, tone: 'text-[#527065] bg-[#eaf1e9]' },
+  ];
+
   return (
     <SidebarLayout>
-      <div className="space-y-6">
-        {/* Header */}
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Marketing Dashboard</h1>
-          <p className="text-gray-600 mt-1">Welcome back, {user?.firstName}! Here's your marketing overview</p>
+      <div className="space-y-7">
+        <div className="premium-page-heading flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <p className="kervox-eyebrow">Marketing workspace / Overview</p>
+            <h1 className="mt-2 text-3xl font-semibold text-[#2d241e]">Marketing dashboard</h1>
+            <p className="mt-2 text-sm text-[#71665c]">
+              {user?.firstName ? `Welcome back, ${user.firstName}. ` : ''}
+              See current leads, priorities, and next steps in one place.
+            </p>
+          </div>
+          <Link
+            href="/marketing/leads"
+            className="inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-lg bg-[#a64c34] px-4 text-sm font-semibold text-white transition-colors hover:bg-[#873b29] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#a64c34]"
+          >
+            Open leads <ArrowRight aria-hidden="true" className="h-4 w-4" />
+          </Link>
         </div>
 
-        {/* Key Metrics - Top Row */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div 
-            className="relative overflow-hidden rounded-lg border border-r-0 bg-gradient-to-t from-background to-muted transition-all duration-200 hover:shadow-lg group"
-            style={{
-              "--glow-color": "rgba(147, 51, 234, 1)",
-              "--glow-color-via": "rgba(147, 51, 234, 0.075)",
-              "--glow-color-to": "rgba(147, 51, 234, 0.2)",
-            } as React.CSSProperties}
-          >
-            <div className="absolute inset-0 rounded-[inherit] bg-gradient-to-r from-transparent from-40% via-[var(--glow-color-via)] to-[var(--glow-color-to)] via-70% z-10 pointer-events-none"></div>
-            <div className="absolute w-[5px] h-[60%] bg-[var(--glow-color)] right-0 top-1/2 -translate-y-1/2 rounded-l shadow-[-2px_0_10px_var(--glow-color)] group-hover:translate-x-full transition-all duration-200 z-20"></div>
-            <CardContent className="pt-6 relative z-30">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600">Total Leads</p>
-                  <p className="text-3xl font-bold mt-1">{stats.totalLeads}</p>
-                  {stats.totalLeads > 0 && (
-                    <p className="text-xs text-green-600 mt-1 flex items-center gap-1">
-                      <TrendingUp className="w-3 h-3" />
-                      Active
-                    </p>
-                  )}
-                </div>
-                <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-                  <Users className="w-6 h-6 text-purple-600" />
-                </div>
-              </div>
-            </CardContent>
-          </div>
+        <section aria-label="Lead overview" className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          <DashboardMetricCard variant="executive" title="Total contacts" value={stats.totalLeads} subtitle="Current workspace records" icon={<Users className="h-5 w-5 text-[#a64c34]" />} {...metricStyle} />
+          <DashboardMetricCard variant="executive" title="New leads" value={stats.pipeline.new} subtitle="Not yet applicants" icon={<UserPlus className="h-5 w-5 text-[#a64c34]" />} {...metricStyle} />
+          <DashboardMetricCard variant="executive" title="Applicants" value={stats.pipeline.qualified} subtitle="Application in progress" icon={<ClipboardList className="h-5 w-5 text-[#a64c34]" />} {...metricStyle} />
+          <DashboardMetricCard variant="executive" title="Converted" value={stats.pipeline.converted} subtitle={`${stats.conversionRate}% of contacts`} icon={<Target className="h-5 w-5 text-[#a64c34]" />} {...metricStyle} />
+        </section>
 
-          <div 
-            className="relative overflow-hidden rounded-lg border border-r-0 bg-gradient-to-t from-background to-muted transition-all duration-200 hover:shadow-lg group"
-            style={{
-              "--glow-color": "rgba(236, 72, 153, 1)",
-              "--glow-color-via": "rgba(236, 72, 153, 0.075)",
-              "--glow-color-to": "rgba(236, 72, 153, 0.2)",
-            } as React.CSSProperties}
-          >
-            <div className="absolute inset-0 rounded-[inherit] bg-gradient-to-r from-transparent from-40% via-[var(--glow-color-via)] to-[var(--glow-color-to)] via-70% z-10 pointer-events-none"></div>
-            <div className="absolute w-[5px] h-[60%] bg-[var(--glow-color)] right-0 top-1/2 -translate-y-1/2 rounded-l shadow-[-2px_0_10px_var(--glow-color)] group-hover:translate-x-full transition-all duration-200 z-20"></div>
-            <CardContent className="pt-6 relative z-30">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600">Active Campaigns</p>
-                  <p className="text-3xl font-bold mt-1 text-purple-600">{stats.activeCampaigns}</p>
-                  <p className="text-xs text-gray-600 mt-1">Coming soon</p>
-                </div>
-                <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-                  <Megaphone className="w-6 h-6 text-purple-600" />
-                </div>
-              </div>
-            </CardContent>
-          </div>
-
-          <div 
-            className="relative overflow-hidden rounded-lg border border-r-0 bg-gradient-to-t from-background to-muted transition-all duration-200 hover:shadow-lg group"
-            style={{
-              "--glow-color": "rgba(16, 185, 129, 1)",
-              "--glow-color-via": "rgba(16, 185, 129, 0.075)",
-              "--glow-color-to": "rgba(16, 185, 129, 0.2)",
-            } as React.CSSProperties}
-          >
-            <div className="absolute inset-0 rounded-[inherit] bg-gradient-to-r from-transparent from-40% via-[var(--glow-color-via)] to-[var(--glow-color-to)] via-70% z-10 pointer-events-none"></div>
-            <div className="absolute w-[5px] h-[60%] bg-[var(--glow-color)] right-0 top-1/2 -translate-y-1/2 rounded-l shadow-[-2px_0_10px_var(--glow-color)] group-hover:translate-x-full transition-all duration-200 z-20"></div>
-            <CardContent className="pt-6 relative z-30">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600">Conversion Rate</p>
-                  <p className="text-3xl font-bold mt-1 text-green-600">{stats.conversionRate}%</p>
-                  {stats.totalLeads > 0 && (
-                    <p className="text-xs text-gray-600 mt-1">
-                      {stats.pipeline.converted} of {stats.totalLeads}
-                    </p>
-                  )}
-                </div>
-                <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                  <Target className="w-6 h-6 text-green-600" />
-                </div>
-              </div>
-            </CardContent>
-          </div>
-
-          <div 
-            className="relative overflow-hidden rounded-lg border border-r-0 bg-gradient-to-t from-background to-muted transition-all duration-200 hover:shadow-lg group"
-            style={{
-              "--glow-color": "rgba(59, 130, 246, 1)",
-              "--glow-color-via": "rgba(59, 130, 246, 0.075)",
-              "--glow-color-to": "rgba(59, 130, 246, 0.2)",
-            } as React.CSSProperties}
-          >
-            <div className="absolute inset-0 rounded-[inherit] bg-gradient-to-r from-transparent from-40% via-[var(--glow-color-via)] to-[var(--glow-color-to)] via-70% z-10 pointer-events-none"></div>
-            <div className="absolute w-[5px] h-[60%] bg-[var(--glow-color)] right-0 top-1/2 -translate-y-1/2 rounded-l shadow-[-2px_0_10px_var(--glow-color)] group-hover:translate-x-full transition-all duration-200 z-20"></div>
-            <CardContent className="pt-6 relative z-30">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600">Referrals</p>
-                  <p className="text-3xl font-bold mt-1">{stats.referrals}</p>
-                  <p className="text-xs text-gray-600 mt-1">Coming soon</p>
-                </div>
-                <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                  <UserPlus className="w-6 h-6 text-blue-600" />
-                </div>
-              </div>
-            </CardContent>
-          </div>
-        </div>
-
-        {/* Lead Pipeline & Campaign Performance */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Lead Pipeline */}
+        <div className="grid gap-5 xl:grid-cols-[1.05fr_.95fr]">
           <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Users className="w-5 h-5" />
-                Lead Pipeline
-              </CardTitle>
+            <CardHeader className="pb-4">
+              <CardTitle className="text-lg">Lead status</CardTitle>
+              <p className="text-sm text-[#71665c]">A current snapshot of contact activity.</p>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              {pipelineRows.map((row) => (
+                <div key={row.label} className="flex items-center justify-between gap-4 rounded-lg border border-[#eee5dc] bg-[#fdfbf8] px-4 py-3">
+                  <div className="flex items-center gap-3">
+                    <span aria-hidden="true" className={`h-2.5 w-2.5 rounded-full ${row.tone}`} />
+                    <span className="text-sm font-medium text-[#453a32]">{row.label}</span>
+                  </div>
+                  <span className="tabular-nums text-lg font-semibold text-[#2d241e]">{row.value.toLocaleString()}</span>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex-row items-center justify-between gap-3 pb-4">
+              <div>
+                <CardTitle className="text-lg">Recent leads</CardTitle>
+                <p className="mt-1 text-sm text-[#71665c]">Latest contact records.</p>
+              </div>
+              <Link href="/marketing/leads" className="shrink-0 text-sm font-semibold text-[#a64c34] hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#a64c34]">View all</Link>
             </CardHeader>
             <CardContent>
-              <div className="space-y-3">
-                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                    <span className="font-medium">New Leads</span>
-                  </div>
-                  <span className="text-2xl font-bold">{stats.pipeline.new}</span>
+              {stats.recentLeads.length === 0 ? (
+                <div className="rounded-lg border border-dashed border-[#e2d5c8] bg-[#fdfbf8] px-5 py-8 text-center">
+                  <Users aria-hidden="true" className="mx-auto h-7 w-7 text-[#b9a99b]" />
+                  <p className="mt-3 text-sm font-medium text-[#453a32]">No leads yet</p>
+                  <p className="mt-1 text-xs text-[#71665c]">New contacts will appear here as they arrive.</p>
                 </div>
-                <div className="flex items-center justify-between p-3 bg-yellow-50 rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
-                    <span className="font-medium">Contacted</span>
-                  </div>
-                  <span className="text-2xl font-bold">{stats.pipeline.contacted}</span>
-                </div>
-                <div className="flex items-center justify-between p-3 bg-orange-50 rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
-                    <span className="font-medium">Qualified</span>
-                  </div>
-                  <span className="text-2xl font-bold">{stats.pipeline.qualified}</span>
-                </div>
-                <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                    <span className="font-medium">Converted</span>
-                  </div>
-                  <span className="text-2xl font-bold">{stats.pipeline.converted}</span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Multi-Channel Performance */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <BarChart3 className="w-5 h-5" />
-                Multi-Channel Performance
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                      <Mail className="w-4 h-4 text-purple-600" />
-                      <span className="text-sm font-medium">Email</span>
-                    </div>
-                    <span className="text-sm text-gray-600">25% open rate</span>
-                  </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div className="bg-purple-600 h-2 rounded-full" style={{ width: '25%' }}></div>
-                  </div>
-                </div>
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                      <MessageSquare className="w-4 h-4 text-green-600" />
-                      <span className="text-sm font-medium">WhatsApp</span>
-                    </div>
-                    <span className="text-sm text-gray-600">80% read rate</span>
-                  </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div className="bg-green-600 h-2 rounded-full" style={{ width: '80%' }}></div>
-                  </div>
-                </div>
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                      <MessageSquare className="w-4 h-4 text-blue-600" />
-                      <span className="text-sm font-medium">SMS</span>
-                    </div>
-                    <span className="text-sm text-gray-600">98% delivery</span>
-                  </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div className="bg-blue-600 h-2 rounded-full" style={{ width: '98%' }}></div>
-                  </div>
-                </div>
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                      <Phone className="w-4 h-4 text-orange-600" />
-                      <span className="text-sm font-medium">Voice</span>
-                    </div>
-                    <span className="text-sm text-gray-600">45% answer rate</span>
-                  </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div className="bg-orange-600 h-2 rounded-full" style={{ width: '45%' }}></div>
-                  </div>
-                </div>
-              </div>
+              ) : (
+                <ul className="divide-y divide-[#eee5dc]">
+                  {stats.recentLeads.map((lead, index) => (
+                    <li key={`${lead.email}-${index}`} className="flex items-center justify-between gap-3 py-3 first:pt-0 last:pb-0">
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-semibold text-[#2d241e]">{lead.name}</p>
+                        <p className="truncate text-xs text-[#71665c]">{lead.email} · {lead.source}</p>
+                      </div>
+                      <span className="shrink-0 rounded-full bg-[#f4eee7] px-2.5 py-1 text-xs font-medium text-[#675548]">{lead.status}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </CardContent>
           </Card>
         </div>
 
-        {/* ROI & Automation Metrics */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                  <DollarSign className="w-5 h-5 text-green-600" />
-                </div>
-                <div>
-                  <p className="text-sm text-gray-600">Campaign ROI</p>
-                  <p className="text-2xl font-bold text-green-600">342%</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                  <Clock className="w-5 h-5 text-blue-600" />
-                </div>
-                <div>
-                  <p className="text-sm text-gray-600">Avg. Onboarding Time</p>
-                  <p className="text-2xl font-bold">27 min</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-                  <Zap className="w-5 h-5 text-purple-600" />
-                </div>
-                <div>
-                  <p className="text-sm text-gray-600">Automation Rate</p>
-                  <p className="text-2xl font-bold text-purple-600">99%</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Quick Actions */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Quick Actions</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-              <button 
-                className="p-4 border rounded-lg hover:bg-purple-50 hover:border-purple-300 transition-colors text-left group"
-                onClick={() => router.push('/marketing/leads')}
-              >
-                <div className="w-10 h-10 bg-purple-100 group-hover:bg-purple-200 rounded-lg flex items-center justify-center mb-2 transition-colors">
-                  <UserPlus className="w-5 h-5 text-purple-600" />
-                </div>
-                <p className="font-medium">Capture Lead</p>
-                <p className="text-xs text-gray-500">Add new lead</p>
-              </button>
-
-              <button 
-                className="p-4 border rounded-lg hover:bg-purple-50 hover:border-purple-300 transition-colors text-left group"
-                onClick={() => router.push('/marketing/campaigns/new')}
-              >
-                <div className="w-10 h-10 bg-purple-100 group-hover:bg-purple-200 rounded-lg flex items-center justify-center mb-2 transition-colors">
-                  <Megaphone className="w-5 h-5 text-purple-600" />
-                </div>
-                <p className="font-medium">New Campaign</p>
-                <p className="text-xs text-gray-500">Create campaign</p>
-              </button>
-
-              <button 
-                className="p-4 border rounded-lg hover:bg-purple-50 hover:border-purple-300 transition-colors text-left group"
-                onClick={() => router.push('/marketing/analytics')}
-              >
-                <div className="w-10 h-10 bg-purple-100 group-hover:bg-purple-200 rounded-lg flex items-center justify-center mb-2 transition-colors">
-                  <BarChart3 className="w-5 h-5 text-purple-600" />
-                </div>
-                <p className="font-medium">View Analytics</p>
-                <p className="text-xs text-gray-500">Performance metrics</p>
-              </button>
-
-              <button 
-                className="p-4 border rounded-lg hover:bg-purple-50 hover:border-purple-300 transition-colors text-left group"
-                onClick={() => router.push('/marketing/referrals')}
-              >
-                <div className="w-10 h-10 bg-purple-100 group-hover:bg-purple-200 rounded-lg flex items-center justify-center mb-2 transition-colors">
-                  <UserPlus className="w-5 h-5 text-purple-600" />
-                </div>
-                <p className="font-medium">Referral Codes</p>
-                <p className="text-xs text-gray-500">Generate codes</p>
-              </button>
+        <section aria-labelledby="quick-actions-title">
+          <div className="mb-3 flex items-end justify-between gap-4">
+            <div>
+              <h2 id="quick-actions-title" className="text-lg font-semibold text-[#2d241e]">Keep work moving</h2>
+              <p className="mt-1 text-sm text-[#71665c]">Go directly to the tools your team uses most.</p>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            {quickActions.map(({ label, description, href, icon: Icon }) => (
+              <Link key={href} href={href} className="group flex min-h-28 items-start gap-3 rounded-xl border border-[#e5d9cc] bg-white p-4 transition-colors hover:border-[#c9957f] hover:bg-[#fffaf5] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#a64c34]">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#f7e9de] text-[#a64c34]" aria-hidden="true"><Icon className="h-5 w-5" /></span>
+                <span className="min-w-0">
+                  <span className="flex items-center gap-1 text-sm font-semibold text-[#2d241e]">{label}<ArrowRight aria-hidden="true" className="h-3.5 w-3.5 opacity-0 transition-opacity group-hover:opacity-100" /></span>
+                  <span className="mt-1 block text-xs leading-relaxed text-[#71665c]">{description}</span>
+                </span>
+              </Link>
+            ))}
+          </div>
+        </section>
 
-        {/* Recent Leads & Active Campaigns */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Recent Leads */}
+        <div className="grid gap-5 lg:grid-cols-2">
           <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle className="flex items-center gap-2">
-                  <Users className="w-5 h-5" />
-                  Recent Leads
-                </CardTitle>
-                <button 
-                  className="text-sm text-purple-600 hover:text-purple-700 font-medium"
-                  onClick={() => router.push('/marketing/leads')}
-                >
-                  View All →
-                </button>
-              </div>
+            <CardHeader className="pb-4">
+              <CardTitle className="text-lg">Lead sources</CardTitle>
+              <p className="text-sm text-[#71665c]">Where current contacts originated.</p>
             </CardHeader>
             <CardContent>
-              <div className="space-y-3">
-                {stats.recentLeads.length === 0 ? (
-                  <div className="text-center py-8 text-gray-500">
-                    <Users className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                    <p className="text-sm">No leads yet</p>
-                  </div>
-                ) : (
-                  stats.recentLeads.map((lead: any, i: number) => (
-                    <div key={i} className="flex items-center gap-3 p-3 border rounded-lg hover:bg-gray-50 transition-colors">
-                      <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
-                        <span className="text-purple-600 font-medium text-sm">
-                          {lead.name.split(' ').map((n: string) => n[0]).join('')}
-                        </span>
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium truncate">{lead.name}</p>
-                        <p className="text-xs text-gray-500 truncate">{lead.email} • {lead.source}</p>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs font-medium text-gray-600">{lead.score}</span>
-                        <span className={`text-xs px-2 py-1 rounded ${
-                          lead.status === 'Converted' ? 'bg-green-100 text-green-800' :
-                          lead.status === 'Qualified' ? 'bg-orange-100 text-orange-800' :
-                          lead.status === 'Contacted' ? 'bg-yellow-100 text-yellow-800' :
-                          'bg-blue-100 text-blue-800'
-                        }`}>
-                          {lead.status}
-                        </span>
-                      </div>
-                    </div>
-                  ))
-                )}
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Active Campaigns */}
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle className="flex items-center gap-2">
-                  <Megaphone className="w-5 h-5" />
-                  Active Campaigns
-                </CardTitle>
-                <button 
-                  className="text-sm text-purple-600 hover:text-purple-700 font-medium"
-                  onClick={() => router.push('/marketing/campaigns')}
-                >
-                  View All →
-                </button>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="rounded-lg border border-dashed border-[#c9dcf5] bg-[#f8fbff] px-6 py-8 text-center">
-                <Megaphone aria-hidden="true" className="mx-auto h-8 w-8 text-[#2563eb]" />
-                <p className="mt-3 font-medium text-[#06152d]">Campaign activity is not connected yet</p>
-                <p className="mt-1 text-sm text-[#52657d]">Open Campaigns to manage the available marketing tools.</p>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Onboarding Funnel & Lead Sources */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Onboarding Funnel */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Target className="w-5 h-5" />
-                Onboarding Funnel (Last 30 Days)
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {[
-                  { step: 'Landing Page Visits', count: 5420, percentage: 100 },
-                  { step: 'Lead Capture', count: 1628, percentage: 30 },
-                  { step: 'Application Started', count: 814, percentage: 15 },
-                  { step: 'Plan Selected', count: 570, percentage: 10.5 },
-                  { step: 'Payment Setup', count: 489, percentage: 9 },
-                  { step: 'Policy Activated', count: 434, percentage: 8 },
-                ].map((stage, i) => (
-                  <div key={i}>
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-sm font-medium">{stage.step}</span>
-                      <span className="text-sm text-gray-600">{stage.count.toLocaleString()} ({stage.percentage}%)</span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div 
-                        className="bg-gradient-to-r from-purple-600 to-purple-400 h-2 rounded-full transition-all" 
-                        style={{ width: `${stage.percentage}%` }}
-                      ></div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Lead Sources */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <TrendingUp className="w-5 h-5" />
-                Lead Sources (This Month)
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {stats.leadSources.length === 0 ? (
-                  <div className="text-center py-8 text-gray-500">
-                    <TrendingUp className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                    <p className="text-sm">No lead sources yet</p>
-                  </div>
-                ) : (
-                  stats.leadSources.map((source: any, i: number) => (
-                    <div key={i} className="flex items-center justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center justify-between mb-1">
-                          <span className="text-sm font-medium">{source.source}</span>
-                          <span className="text-sm text-gray-600">{source.leads} leads • {source.conversion}% conv.</span>
+              {stats.leadSources.length === 0 ? (
+                <p className="rounded-lg border border-dashed border-[#e2d5c8] bg-[#fdfbf8] px-5 py-8 text-center text-sm text-[#71665c]">Source information will appear when contacts are recorded.</p>
+              ) : (
+                <div className="space-y-4">
+                  {[...stats.leadSources].sort((a, b) => b.leads - a.leads).map((source) => {
+                    const share = stats.totalLeads > 0 ? Math.min(100, (source.leads / stats.totalLeads) * 100) : 0;
+                    return (
+                      <div key={source.source}>
+                        <div className="mb-2 flex items-center justify-between gap-3 text-sm">
+                          <span className="font-medium text-[#453a32]">{source.source}</span>
+                          <span className="tabular-nums text-[#71665c]">{source.leads.toLocaleString()} contacts · {source.conversion}% converted</span>
                         </div>
-                        <div className="w-full bg-gray-200 rounded-full h-2">
-                          <div 
-                            className="bg-purple-600 h-2 rounded-full"
-                            style={{ width: `${(source.leads / stats.totalLeads) * 100}%` }}
-                          ></div>
+                        <div className="h-2 overflow-hidden rounded-full bg-[#f1e8df]" role="meter" aria-label={`${source.source} share of contacts`} aria-valuenow={Math.round(share)} aria-valuemin={0} aria-valuemax={100}>
+                          <div className="h-full rounded-full bg-[#a64c34]" style={{ width: `${share}%` }} />
                         </div>
                       </div>
-                    </div>
-                  ))
-                )}
-              </div>
+                    );
+                  })}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-4">
+              <CardTitle className="text-lg">Lead score distribution</CardTitle>
+              <p className="text-sm text-[#71665c]">Based on the scores assigned to current leads.</p>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              {scoreRows.map((row) => (
+                <div key={row.label} className="flex items-center justify-between gap-3 rounded-lg border border-[#eee5dc] px-4 py-3">
+                  <div>
+                    <p className="text-sm font-medium text-[#453a32]">{row.label}</p>
+                    <p className="text-xs text-[#71665c]">{row.range}</p>
+                  </div>
+                  <span className={`min-w-10 rounded-lg px-2.5 py-1 text-center text-sm font-semibold tabular-nums ${row.tone}`}>{row.value.toLocaleString()}</span>
+                </div>
+              ))}
             </CardContent>
           </Card>
         </div>
-
-        {/* Alerts & Notifications */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <AlertCircle className="w-5 h-5" />
-              Action Required
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
-                <div className="flex items-center gap-2 mb-2">
-                  <AlertCircle className="w-5 h-5 text-red-600" />
-                  <span className="font-medium text-red-900">Hot Leads</span>
-                </div>
-                <p className="text-2xl font-bold text-red-600 mb-1">{stats.lifecycle.hot}</p>
-                <p className="text-xs text-red-700">Require immediate follow-up</p>
-              </div>
-
-              <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                <div className="flex items-center gap-2 mb-2">
-                  <Clock className="w-5 h-5 text-yellow-600" />
-                  <span className="font-medium text-yellow-900">Warm Leads</span>
-                </div>
-                <p className="text-2xl font-bold text-yellow-600 mb-1">{stats.lifecycle.warm}</p>
-                <p className="text-xs text-yellow-700">Nurture with campaigns</p>
-              </div>
-
-              <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                <div className="flex items-center gap-2 mb-2">
-                  <CheckCircle className="w-5 h-5 text-blue-600" />
-                  <span className="font-medium text-blue-900">Cold Leads</span>
-                </div>
-                <p className="text-2xl font-bold text-blue-600 mb-1">{stats.lifecycle.cold}</p>
-                <p className="text-xs text-blue-700">Awareness campaigns</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
       </div>
     </SidebarLayout>
   );

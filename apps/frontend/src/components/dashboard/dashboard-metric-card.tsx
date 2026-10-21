@@ -37,6 +37,8 @@ export function DashboardMetricCard({
 
   return (
     <Card
+      data-kervox-metric
+      data-kervox-metric-variant={variant}
       className={
         isExecutive
           ? 'group relative overflow-hidden rounded-lg border border-slate-200 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04)] transition-all duration-200 hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-[0_12px_28px_rgba(15,23,42,0.08)]'

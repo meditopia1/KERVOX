@@ -1,3 +1,11 @@
+const path = require('path')
+const dotenv = require('dotenv')
+
+// Next.js loads apps/frontend/.env.local automatically. In this monorepo the
+// server-only Supabase key may instead live in the repository root .env.local.
+// Fill missing values from there without overriding deployment environment.
+dotenv.config({ path: path.resolve(__dirname, '../..', '.env.local'), override: false, quiet: true })
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,

@@ -1,10 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { AlertCircle, ArrowUpRight, BarChart3, Copy, Eye, FileText, LayoutTemplate, Loader2, Pencil, Plus, Search, TrendingUp, Users } from 'lucide-react';
 import { SidebarLayout } from '@/components/layout/sidebar-layout';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { LandingPageEditor } from '@/components/marketing/landing-page-editor';
+import { MarketplaceRequestsPanel } from '@/components/marketing/MarketplaceRequestsPanel';
 import { authFetch } from '@/lib/auth-fetch';
 import {
   brandedLandingPageDescription,
@@ -12,55 +14,79 @@ import {
   isOriginalMarketingLandingContent,
   type MarketingLandingPage,
 } from '@/lib/marketing-landing-page';
-import { 
-  Layout, 
-  Eye, 
-  Users, 
-  TrendingUp,
-  Edit,
-  Copy,
-  Play,
-  Pause,
-  BarChart3,
-  ExternalLink,
-  Loader2
-} from 'lucide-react';
+
+type PageFilter = 'all' | 'active' | 'draft';
+const filters: { value: PageFilter; label: string }[] = [
+  { value: 'all', label: 'All pages' },
+  { value: 'active', label: 'Published' },
+  { value: 'draft', label: 'Drafts' },
+];
+const marketplaceName = 'KERVOX Server Marketplace';
+const marketplaceDescription = 'Browse server products and connect with buyers or sellers.';
+const publicSlugFor = (page: MarketingLandingPage) =>
+  isOriginalMarketingLandingContent(page.content) && page.slug === 'summer-health-2026'
+    ? 'server-marketplace'
+    : page.slug;
+
+function SummaryMetric({ label, value, note, icon: Icon }: {
+  label: string;
+  value: string;
+  note: string;
+  icon: typeof FileText;
+}) {
+  return (
+    <div className="rounded-xl border border-[#e6e0d7] bg-[#fffefa] p-5 shadow-[0_8px_24px_rgba(49,37,28,0.035)]">
+      <div className="flex items-start justify-between gap-3">
+        <p className="text-sm font-medium text-[#6d675f]">{label}</p>
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-[#ead9cb] bg-[#faf0e9] text-[#a64c34]">
+          <Icon className="h-[18px] w-[18px]" aria-hidden="true" />
+        </span>
+      </div>
+      <p className="mt-3 text-[2rem] font-semibold leading-none tracking-[-0.04em] text-[#2b2926] tabular-nums">{value}</p>
+      <p className="mt-2 text-xs text-[#81796e]">{note}</p>
+    </div>
+  );
+}
 
 export default function LandingPagesPage() {
   const [landingPages, setLandingPages] = useState<MarketingLandingPage[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  const [query, setQuery] = useState('');
+  const [filter, setFilter] = useState<PageFilter>('all');
   const [editorOpen, setEditorOpen] = useState(false);
   const [editorMode, setEditorMode] = useState<'create' | 'edit' | 'clone'>('create');
   const [editorPage, setEditorPage] = useState<MarketingLandingPage | null>(null);
 
-  useEffect(() => {
-    fetchLandingPages();
-  }, []);
-
-  async function fetchLandingPages() {
+  const fetchLandingPages = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
-      
       const response = await authFetch('/api/marketing/landing-pages');
-
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || `Failed to fetch landing pages (${response.status})`);
+        const body = await response.json().catch(() => ({}));
+        throw new Error(body.error || `Failed to fetch landing pages (${response.status})`);
       }
-
-      const data = await response.json();
-      
-      setLandingPages(data);
-    } catch (err: any) {
-      console.error('Fetch error:', err);
-      setError(err.message);
+      setLandingPages(await response.json());
+    } catch (cause) {
+      console.error('Fetch error:', cause);
+      setError(cause instanceof Error ? cause.message : 'Unable to load landing pages.');
     } finally {
       setLoading(false);
     }
-  }
+  }, []);
+
+  useEffect(() => { void fetchLandingPages(); }, [fetchLandingPages]);
+
+  const visiblePages = useMemo(() => landingPages.filter((page) => {
+    if (filter !== 'all' && page.status !== filter) return false;
+    const search = query.trim().toLowerCase();
+    if (!search) return true;
+    const isMarketplace = isOriginalMarketingLandingContent(page.content);
+    return [isMarketplace ? marketplaceName : page.name, publicSlugFor(page), isMarketplace ? marketplaceDescription : page.description]
+      .some((part) => part?.toLowerCase().includes(search));
+  }), [landingPages, filter, query]);
 
   function openEditor(mode: 'create' | 'edit' | 'clone', page: MarketingLandingPage | null = null) {
     setEditorMode(mode);
@@ -73,243 +99,145 @@ export default function LandingPagesPage() {
     setLandingPages((current) => current.some((page) => page.id === savedPage.id)
       ? current.map((page) => page.id === savedPage.id ? savedPage : page)
       : [savedPage, ...current]);
+    const savedName = isOriginalMarketingLandingContent(savedPage.content) ? marketplaceName : savedPage.name;
     setNotice(savedPage.status === 'active'
-      ? `“${savedPage.name}” is published at /lp/${savedPage.slug}.`
-      : `“${savedPage.name}” was saved as a draft.`);
+      ? `“${savedName}” is published at /lp/${publicSlugFor(savedPage)}.`
+      : `“${savedName}” was saved as a draft.`);
   }
 
-  const totalVisits = landingPages.reduce((sum, p) => sum + (p.stats?.visits || 0), 0);
-  const totalLeads = landingPages.reduce((sum, p) => sum + (p.stats?.leads || 0), 0);
-  const measuredPages = landingPages.filter((page) => page.stats != null);
-  const avgConversion = measuredPages.length > 0
-    ? measuredPages.reduce((sum, p) => sum + (p.stats?.conversionRate || 0), 0) / measuredPages.length
-    : 0;
-  const hasAnalytics = measuredPages.length > 0;
   const originalLandingPage = landingPages.find((page) =>
     page.status === 'active' && isOriginalMarketingLandingContent(page.content));
-
   function openOriginalLandingPage() {
     if (!originalLandingPage) {
       setNotice('The original landing page is unavailable. You can create a custom page instead.');
       return;
     }
-
-    window.location.assign(`/lp/${encodeURIComponent(originalLandingPage.slug)}`);
+    window.location.assign(`/lp/${encodeURIComponent(publicSlugFor(originalLandingPage))}`);
   }
 
-  if (loading) {
-    return (
-      <SidebarLayout>
-        <div className="flex items-center justify-center h-96">
-          <div className="text-center">
-            <Loader2 className="w-12 h-12 animate-spin text-blue-600 mx-auto mb-4" />
-            <p className="text-gray-600">Loading landing pages...</p>
-          </div>
-        </div>
-      </SidebarLayout>
-    );
-  }
-
-  if (error) {
-    return (
-      <SidebarLayout>
-        <div className="flex items-center justify-center h-96">
-          <div className="text-center">
-            <p className="text-red-600 mb-2 font-semibold">Error: {error}</p>
-            <p className="text-gray-600 mb-4 text-sm">
-              {error.includes('Failed to fetch') || error.includes('401') 
-                ? 'You need to be logged in as a marketing user to view landing pages.' 
-                : 'Unable to load landing pages.'}
-            </p>
-            <div className="flex gap-2 justify-center">
-              <Button onClick={fetchLandingPages} variant="outline">Retry</Button>
-              <Button onClick={() => window.location.href = '/login'}>
-                Go to Login
-              </Button>
-            </div>
-          </div>
-        </div>
-      </SidebarLayout>
-    );
-  }
+  const measuredPages = landingPages.filter((page) => page.stats != null);
+  const totalVisits = landingPages.reduce((sum, page) => sum + (page.stats?.visits || 0), 0);
+  const totalLeads = landingPages.reduce((sum, page) => sum + (page.stats?.leads || 0), 0);
+  const avgConversion = measuredPages.length
+    ? measuredPages.reduce((sum, page) => sum + (page.stats?.conversionRate || 0), 0) / measuredPages.length
+    : 0;
+  const activeCount = landingPages.filter((page) => page.status === 'active').length;
+  const hasAnalytics = measuredPages.length > 0;
 
   return (
     <SidebarLayout>
-      <div className="space-y-6">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <p className="kervox-eyebrow">Marketing workspace</p>
-            <h1 className="mt-2 text-3xl font-bold text-[#06152d]">Landing pages & funnels</h1>
-            <p className="mt-1 text-[#52657d]">Manage your KERVOX campaigns and connected operations pages.</p>
+      <div className="mx-auto max-w-[1500px] space-y-7">
+        <header className="premium-page-heading flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+          <div className="max-w-2xl">
+            <p className="kervox-eyebrow">Marketing workspace / Pages</p>
+            <h1 className="mt-2 text-3xl font-semibold text-[#2b2926] sm:text-[2.1rem]">Landing pages &amp; funnels</h1>
+            <p className="mt-2 text-sm leading-6 text-[#6d675f]">Keep every campaign page organized, published, and ready to share.</p>
           </div>
           <div className="flex flex-wrap gap-2">
-            <Button variant="outline" disabled title="The funnel builder is not available yet">
-              <Layout className="w-4 h-4 mr-2" />
-              New Funnel
-            </Button>
-            <Button variant="outline" onClick={() => openEditor('create')}>
-              Create custom page
-            </Button>
-            <Button onClick={openOriginalLandingPage} title="Open the original landing page">
-              <Layout className="w-4 h-4 mr-2" />
-              New Landing Page
-            </Button>
+            <Button variant="outline" disabled title="The funnel builder is not available yet"><LayoutTemplate className="mr-2 h-4 w-4" aria-hidden="true" />New Funnel</Button>
+            <Button variant="outline" onClick={() => openEditor('create')}><Plus className="mr-2 h-4 w-4" aria-hidden="true" />Create custom page</Button>
+            <Button onClick={openOriginalLandingPage} title="Open the original landing page" disabled={loading}><ArrowUpRight className="mr-2 h-4 w-4" aria-hidden="true" />New Landing Page</Button>
           </div>
-        </div>
+        </header>
 
-        {notice && <p role="status" className="rounded-lg border border-[#bfdbfe] bg-[#eff6ff] px-4 py-3 text-sm font-medium text-[#1d4ed8]">{notice}</p>}
+        {notice && <p role="status" className="rounded-xl border border-[#e2cdbd] bg-[#fcf2e9] px-4 py-3 text-sm font-medium text-[#783d2d]">{notice}</p>}
 
-        {/* Stats Overview */}
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
+        {loading ? (
+          <div role="status" className="flex min-h-80 flex-col items-center justify-center rounded-xl border border-[#e6e0d7] bg-[#fffefa] text-center">
+            <Loader2 className="h-7 w-7 animate-spin text-[#a64c34] motion-reduce:animate-none" aria-hidden="true" />
+            <p className="mt-4 text-sm font-medium text-[#6d675f]">Loading landing pages...</p>
+          </div>
+        ) : error ? (
+          <div role="alert" className="flex min-h-80 flex-col items-center justify-center rounded-xl border border-[#e6e0d7] bg-[#fffefa] px-6 text-center">
+            <AlertCircle className="h-9 w-9 text-[#a64c34]" aria-hidden="true" />
+            <h2 className="mt-4 text-xl font-semibold">Pages unavailable</h2>
+            <p className="mt-2 max-w-md text-sm text-[#6d675f]">{error}</p>
+            <div className="mt-5 flex flex-wrap justify-center gap-2">
+              <Button onClick={() => void fetchLandingPages()} variant="outline">Retry</Button>
+              <Button onClick={() => { window.location.href = '/login'; }}>Go to Login</Button>
+            </div>
+          </div>
+        ) : (
+          <>
+            <section aria-label="Page overview" className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+              <SummaryMetric label="Total pages" value={String(landingPages.length)} note={`${activeCount} published`} icon={FileText} />
+              <SummaryMetric label="Total visits" value={hasAnalytics ? totalVisits.toLocaleString() : '—'} note={hasAnalytics ? 'Recorded visits' : 'Analytics not connected'} icon={Eye} />
+              <SummaryMetric label="Total leads" value={hasAnalytics ? totalLeads.toLocaleString() : '—'} note={hasAnalytics ? 'Recorded leads' : 'Analytics not connected'} icon={Users} />
+              <SummaryMetric label="Avg. conversion" value={hasAnalytics ? `${avgConversion.toFixed(1)}%` : '—'} note={hasAnalytics ? 'Average reported rate' : 'Analytics not connected'} icon={TrendingUp} />
+            </section>
+
+            <section aria-labelledby="pages-heading" className="overflow-hidden rounded-xl border border-[#e6e0d7] bg-[#fffefa] shadow-[0_10px_32px_rgba(49,37,28,0.035)]">
+              <div className="flex flex-col gap-4 border-b border-[#eae3da] px-5 py-5 sm:px-6 lg:flex-row lg:items-center lg:justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">Total Pages</p>
-                  <p className="text-3xl font-bold mt-1">{landingPages.length}</p>
-                  <p className="text-xs text-gray-500 mt-1">{landingPages.filter(p => p.status === 'active').length} active</p>
+                  <h2 id="pages-heading" className="text-lg font-semibold text-[#2b2926]">Your landing pages</h2>
+                  <p className="mt-1 text-sm text-[#81796e]">{landingPages.length} page{landingPages.length === 1 ? '' : 's'} in this workspace</p>
                 </div>
-                <Layout className="w-9 h-9 text-blue-600 opacity-70" />
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600">Total Visits</p>
-                  <p className="text-3xl font-bold mt-1">{hasAnalytics ? totalVisits.toLocaleString() : '—'}</p>
-                  <p className="text-xs text-[#52657d] mt-1">{hasAnalytics ? 'Recorded visits' : 'Analytics not connected'}</p>
+                <div className="relative w-full lg:w-72">
+                  <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#81796e]" aria-hidden="true" />
+                  <Input aria-label="Search landing pages" placeholder="Search pages or URLs" value={query} onChange={(event) => setQuery(event.target.value)} className="pl-9" />
                 </div>
-                <Eye className="w-10 h-10 text-blue-600 opacity-50" />
               </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600">Total Leads</p>
-                  <p className="text-3xl font-bold mt-1">{hasAnalytics ? totalLeads.toLocaleString() : '—'}</p>
-                  <p className="text-xs text-[#52657d] mt-1">{hasAnalytics ? 'Recorded leads' : 'Analytics not connected'}</p>
-                </div>
-                <Users className="w-9 h-9 text-blue-600 opacity-70" />
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600">Avg Conversion</p>
-                  <p className="text-3xl font-bold mt-1 text-blue-600">{hasAnalytics ? `${avgConversion.toFixed(1)}%` : '—'}</p>
-                  <p className="text-xs text-[#52657d] mt-1">{hasAnalytics ? 'Average of reported rates' : 'Analytics not connected'}</p>
-                </div>
-                <TrendingUp className="w-9 h-9 text-blue-600 opacity-70" />
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Landing Pages */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Layout className="w-5 h-5" />
-              Landing Pages
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {landingPages.length === 0 ? (
-              <div className="text-center py-12">
-                <Layout className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                <p className="text-gray-600 mb-4">No landing pages yet</p>
-                <Button onClick={() => openEditor('create')}>
-                  <Layout className="w-4 h-4 mr-2" />
-                  Create Your First Landing Page
-                </Button>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {landingPages.map((page) => (
-                  <div key={page.id} className="rounded-lg border border-[#dce8f7] p-4 transition-colors hover:bg-[#f8fbff]">
-                    <div className="mb-3 flex items-start justify-between">
-                      <div className="min-w-0 flex-1">
-                        <div className="mb-2 flex flex-wrap items-center gap-3">
-                          <h3 className="text-lg font-semibold text-[#06152d]">{isOriginalMarketingLandingContent(page.content) ? page.name : brandedLandingPageName(page.name)}</h3>
-                          <span className={`text-xs px-2 py-1 rounded ${
-                            page.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
-                          }`}>
-                            {page.status === 'active' ? <Play className="w-3 h-3 inline mr-1" /> : <Pause className="w-3 h-3 inline mr-1" />}
-                            {page.status.toUpperCase()}
-                          </span>
-                          <span className="text-xs px-2 py-1 bg-blue-100 text-blue-800 rounded">
-                            {brandedLandingPageName(page.template)}
-                          </span>
-                        </div>
-                        <p className="text-sm text-[#52657d] mb-1">Public landing page</p>
-                        <p className="text-xs text-[#52657d]">{isOriginalMarketingLandingContent(page.content) ? page.description : brandedLandingPageDescription(page.description)}</p>
-                      </div>
-                    </div>
-
-                    {page.stats && (
-                      <div className="mb-3 grid grid-cols-1 gap-3 sm:grid-cols-3">
-                        <div className="text-center p-2 bg-gray-50 rounded">
-                          <p className="text-xs text-gray-600">Visits</p>
-                          <p className="text-lg font-bold">{page.stats.visits.toLocaleString()}</p>
-                        </div>
-                        <div className="text-center p-2 bg-[#f1f7ff] rounded">
-                          <p className="text-xs text-gray-600">Leads</p>
-                          <p className="text-lg font-bold text-blue-600">{page.stats.leads.toLocaleString()}</p>
-                        </div>
-                        <div className="text-center p-2 bg-[#f1f7ff] rounded">
-                          <p className="text-xs text-gray-600">Conv. Rate</p>
-                          <p className="text-lg font-bold text-blue-600">{page.stats.conversionRate.toFixed(1)}%</p>
-                        </div>
-                      </div>
-                    )}
-
-                    <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-gray-500">
-                      <span>Created: {new Date(page.created_at).toLocaleDateString()}</span>
-                      <div className="flex flex-wrap gap-2">
-                        <Button 
-                          size="sm" 
-                          variant="outline"
-                          disabled={page.status !== 'active'}
-                          title={page.status === 'active' ? 'Open public page' : 'Publish this page before opening it'}
-                          onClick={() => window.open(`/lp/${page.slug}`, '_blank')}
-                        >
-                          <ExternalLink className="w-3 h-3 mr-1" />
-                          View
-                        </Button>
-                        <Button size="sm" variant="outline" onClick={() => openEditor('edit', page)}>
-                          <Edit className="w-3 h-3 mr-1" />
-                          Edit
-                        </Button>
-                        <Button size="sm" variant="outline" disabled title="Analytics are not connected yet">
-                          <BarChart3 className="w-3 h-3 mr-1" />
-                          Analytics
-                        </Button>
-                        <Button size="sm" variant="outline" disabled={isOriginalMarketingLandingContent(page.content)} title={isOriginalMarketingLandingContent(page.content) ? 'This original campaign template cannot be cloned here' : 'Clone this page'} onClick={() => openEditor('clone', page)}>
-                          <Copy className="w-3 h-3 mr-1" />
-                          Clone
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
+              <div role="group" aria-label="Filter landing pages" className="flex flex-wrap gap-2 border-b border-[#eee8df] px-5 py-3 sm:px-6">
+                {filters.map((item) => (
+                  <button key={item.value} type="button" aria-pressed={filter === item.value} onClick={() => setFilter(item.value)}
+                    className={`rounded-lg px-3 py-1.5 text-sm font-medium transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#a64c34] ${filter === item.value ? 'bg-[#f4e5da] text-[#873b29]' : 'text-[#6d675f] hover:bg-[#f4f0e9] hover:text-[#2b2926]'}`}>
+                    {item.label}
+                  </button>
                 ))}
               </div>
-            )}
-          </CardContent>
-        </Card>
+              {landingPages.length === 0 ? (
+                <div className="flex flex-col items-center px-6 py-16 text-center">
+                  <span className="flex h-14 w-14 items-center justify-center rounded-xl border border-[#e8d7ca] bg-[#fbf0e8] text-[#a64c34]"><LayoutTemplate className="h-7 w-7" aria-hidden="true" /></span>
+                  <h3 className="mt-5 text-lg font-semibold">A place for every campaign</h3>
+                  <p className="mt-2 max-w-sm text-sm leading-6 text-[#6d675f]">Create a custom page to give your next campaign a focused destination.</p>
+                  <Button className="mt-6" onClick={() => openEditor('create')}><Plus className="mr-2 h-4 w-4" aria-hidden="true" />Create your first page</Button>
+                </div>
+              ) : visiblePages.length === 0 ? (
+                <div className="px-6 py-14 text-center">
+                  <Search className="mx-auto h-7 w-7 text-[#b8a99a]" aria-hidden="true" />
+                  <h3 className="mt-3 text-base font-semibold">No matching pages</h3>
+                  <p className="mt-1 text-sm text-[#6d675f]">Try another search or choose a different filter.</p>
+                  <button type="button" onClick={() => { setQuery(''); setFilter('all'); }} className="mt-4 text-sm font-semibold text-[#873b29] underline-offset-4 hover:underline">Clear filters</button>
+                </div>
+              ) : (
+                <div className="divide-y divide-[#eee8df]">
+                  {visiblePages.map((page) => {
+                    const isOriginal = isOriginalMarketingLandingContent(page.content);
+                    return (
+                      <article key={page.id} className="px-5 py-5 transition-colors hover:bg-[#fcfaf6] sm:px-6">
+                        <div className="flex flex-col gap-5 xl:flex-row xl:items-center xl:justify-between">
+                          <div className="min-w-0 flex-1">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <h3 className="min-w-0 truncate text-base font-semibold text-[#2b2926] sm:text-lg">{isOriginal ? marketplaceName : brandedLandingPageName(page.name)}</h3>
+                              <span className={`rounded-full px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.06em] ${page.status === 'active' ? 'bg-[#e8f1e7] text-[#3f6650]' : 'bg-[#f1ede7] text-[#74695e]'}`}>{page.status === 'active' ? 'Published' : 'Draft'}</span>
+                              {isOriginal && <span className="rounded-full border border-[#e5d4c6] bg-[#fbf1e8] px-2.5 py-1 text-[11px] font-medium text-[#8b583d]">Marketplace</span>}
+                            </div>
+                            <p className="mt-1.5 break-all text-xs font-medium text-[#a64c34]">/lp/{publicSlugFor(page)}</p>
+                            <p className="mt-2 max-w-2xl text-sm leading-6 text-[#6d675f]">{isOriginal ? marketplaceDescription : brandedLandingPageDescription(page.description)}</p>
+                            <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-[#81796e]">
+                              <span>Created {new Date(page.created_at).toLocaleDateString()}</span>
+                              <span>Template: {isOriginal ? 'Server marketplace' : brandedLandingPageName(page.template)}</span>
+                              {page.stats && <span>{page.stats.visits.toLocaleString()} visits · {page.stats.leads.toLocaleString()} leads · {page.stats.conversionRate.toFixed(1)}% conversion</span>}
+                            </div>
+                          </div>
+                          <div className="flex shrink-0 flex-wrap gap-2">
+                            <Button size="sm" variant="outline" disabled={page.status !== 'active'} title={page.status === 'active' ? 'Open public page' : 'Publish this page before opening it'} onClick={() => window.open(`/lp/${publicSlugFor(page)}`, '_blank', 'noopener,noreferrer')}><ArrowUpRight className="mr-1.5 h-3.5 w-3.5" aria-hidden="true" />View</Button>
+                            <Button size="sm" variant="outline" onClick={() => openEditor('edit', page)}><Pencil className="mr-1.5 h-3.5 w-3.5" aria-hidden="true" />Edit</Button>
+                            <Button size="sm" variant="outline" disabled title="Analytics are not connected yet"><BarChart3 className="mr-1.5 h-3.5 w-3.5" aria-hidden="true" />Analytics</Button>
+                            <Button size="sm" variant="outline" disabled={isOriginal} title={isOriginal ? 'This original campaign template cannot be cloned here' : 'Clone this page'} onClick={() => openEditor('clone', page)}><Copy className="mr-1.5 h-3.5 w-3.5" aria-hidden="true" />Clone</Button>
+                          </div>
+                        </div>
+                      </article>
+                    );
+                  })}
+                </div>
+              )}
+            </section>
+            <MarketplaceRequestsPanel />
+          </>
+        )}
       </div>
-      <LandingPageEditor
-        open={editorOpen}
-        mode={editorMode}
-        page={editorPage}
-        onOpenChange={setEditorOpen}
-        onSaved={handleSaved}
-      />
+      <LandingPageEditor open={editorOpen} mode={editorMode} page={editorPage} onOpenChange={setEditorOpen} onSaved={handleSaved} />
     </SidebarLayout>
   );
 }

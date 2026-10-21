@@ -368,25 +368,23 @@ export default function AdminDashboardPage() {
 
   return (
     <SidebarLayout>
-      <div className="-m-6 min-h-[calc(100vh-4rem)] space-y-6 bg-[linear-gradient(180deg,#f8fafc_0%,#eef6f4_52%,#f8fafc_100%)] p-6">
+      <div className="premium-admin-dashboard min-h-[calc(100vh-4rem)] space-y-8">
         {/* Page Header */}
-        <div className="rounded-lg border border-slate-200 bg-white px-5 py-4 shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
+        <div className="premium-page-heading">
           <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <h1 className="text-3xl font-semibold text-slate-950">Admin Dashboard</h1>
-              <p className="mt-1 text-sm text-slate-500">System overview and pending items</p>
-            </div>
-            <div className="hidden rounded-md border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-medium text-emerald-800 sm:block">
-              KERVOX presentation view
+              <p className="kervox-eyebrow">System operations</p>
+              <h1 className="mt-2 text-3xl font-semibold text-[#06152d]">Admin Dashboard</h1>
+              <p className="mt-2 text-sm text-[#52657d]">System overview and pending items</p>
             </div>
           </div>
         </div>
 
         {/* System Statistics */}
-        <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
-          <h2 className="mb-3 text-base font-semibold text-slate-950">System Statistics</h2>
+        <div className="premium-panel p-5 sm:p-6">
+          <h2 className="mb-5 text-base font-semibold text-[#06152d]">System Statistics</h2>
           {loadingStats ? (
-            <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 xl:grid-cols-6">
               {[...Array(6)].map((_, i) => (
                 <Card key={i}>
                   <CardContent className="pt-6">
@@ -399,7 +397,7 @@ export default function AdminDashboardPage() {
               ))}
             </div>
           ) : (
-            <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 xl:grid-cols-6">
               <DashboardMetricCard
                 variant="executive"
                 title="Total Members"
@@ -469,9 +467,9 @@ export default function AdminDashboardPage() {
         </div>
 
         {/* Financial Overview */}
-        <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
-          <h2 className="mb-3 text-base font-semibold text-slate-950">Financial Overview (MTD)</h2>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="premium-panel p-5 sm:p-6">
+          <h2 className="mb-5 text-base font-semibold text-[#06152d]">Financial Overview (MTD)</h2>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
             <DashboardMetricCard
               variant="executive"
               title="Monthly Premium"
@@ -670,7 +668,7 @@ export default function AdminDashboardPage() {
             <CardTitle>Quick Actions</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
               <Button
                 variant="outline"
                 className="h-auto py-4 flex flex-col gap-2"

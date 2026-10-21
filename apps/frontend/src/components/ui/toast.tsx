@@ -41,7 +41,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   return (
     <ToastContext.Provider value={{ toasts, addToast, removeToast }}>
       {children}
-      <div className="fixed bottom-4 right-4 z-50 flex flex-col gap-2">
+      <div className="pointer-events-none fixed bottom-4 right-4 z-50 flex flex-col gap-2">
         {toasts.map((toast) => (
           <Toast key={toast.id} {...toast} onClose={() => removeToast(toast.id)} />
         ))}
@@ -62,14 +62,14 @@ function Toast({ title, description, type = 'info', onClose }: ToastProps & { on
   const bgColor = {
     success: 'bg-green-50 border-green-200',
     error: 'bg-red-50 border-red-200',
-    info: 'bg-blue-50 border-blue-200',
+    info: 'bg-[#fffefa] border-[#dfc8b7]',
     warning: 'bg-yellow-50 border-yellow-200',
   }[type]
 
   const iconColor = {
     success: 'text-green-600',
     error: 'text-red-600',
-    info: 'text-blue-600',
+    info: 'text-[#a64c34]',
     warning: 'text-yellow-600',
   }[type]
 
@@ -97,7 +97,7 @@ function Toast({ title, description, type = 'info', onClose }: ToastProps & { on
   }[type]
 
   return (
-    <div className={`${bgColor} border rounded-lg shadow-lg p-4 min-w-[300px] max-w-md animate-in slide-in-from-right`}>
+    <div data-kervox-toast data-toast-type={type} role={type === 'error' ? 'alert' : 'status'} className={`${bgColor} pointer-events-auto relative w-[calc(100vw-2rem)] max-w-sm overflow-hidden rounded-xl border p-4 shadow-[0_18px_45px_rgba(49,37,28,0.16)] animate-in slide-in-from-right motion-reduce:animate-none`}>
       <div className="flex items-start gap-3">
         <div className={iconColor}>{icon}</div>
         <div className="flex-1">
@@ -105,8 +105,10 @@ function Toast({ title, description, type = 'info', onClose }: ToastProps & { on
           {description && <p className="text-sm text-gray-600 mt-1">{description}</p>}
         </div>
         <button
+          type="button"
           onClick={onClose}
-          className="text-gray-400 hover:text-gray-600 transition-colors"
+          aria-label="Dismiss notification"
+          className="rounded-md p-1 text-gray-500 transition-colors hover:bg-black/5 hover:text-gray-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#a64c34]"
         >
           <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
             <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />

@@ -2,6 +2,8 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
+import Link from 'next/link';
 import { useAuth } from '@/contexts/auth-context';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -32,27 +34,30 @@ export default function MarketingLoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#f8fbff] px-4">
-      <Card className="w-full max-w-md">
+    <div className="premium-login premium-marketing-login relative flex min-h-screen items-center justify-center overflow-hidden bg-[#f7f5f0] px-4 py-12 text-[#2b2926]">
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_50%_10%,#fffefa_0%,#f7f5f0_68%)]" />
+      <Card className="premium-login-card relative w-full max-w-md border-[#e6e0d7] bg-[#fffefa] shadow-[0_24px_64px_rgba(49,37,28,0.09)]">
         <CardHeader className="space-y-1">
+          <Link href="/" aria-label="KERVOX home" className="mb-5 flex justify-center"><Image src="/kervox-logo.svg" alt="KERVOX" width={145} height={30} className="h-[30px] w-auto" /></Link>
           <div className="flex items-center justify-center mb-4">
-            <div className="w-16 h-16 bg-[#2563eb] rounded-lg flex items-center justify-center">
-              <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="flex h-14 w-14 items-center justify-center rounded-xl border border-[#e8cfc0] bg-[#f5e6dd] text-[#a64c34] shadow-[inset_0_1px_0_rgba(255,255,255,.8)]">
+              <svg className="h-7 w-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
               </svg>
             </div>
           </div>
-          <CardTitle className="text-2xl font-bold text-center">
+          <p className="text-center text-[11px] font-bold uppercase tracking-[0.18em] text-[#a64c34]">Your connected workspace</p>
+          <CardTitle className="pt-2 text-center text-2xl font-semibold tracking-[-0.04em] text-[#2b2926]">
             Marketing Portal
           </CardTitle>
-          <CardDescription className="text-center">
+          <CardDescription className="pt-1 text-center text-[#6d675f]">
             Sign in to access marketing tools
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             {error && (
-              <div className="p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-md">
+              <div role="alert" className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
                 {error}
               </div>
             )}
@@ -69,6 +74,7 @@ export default function MarketingLoginPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 disabled={loading}
+                className="h-11 border-[#d8cec2] bg-[#fffefa] text-[#2b2926] placeholder:text-[#81796e] focus-visible:border-[#a64c34] focus-visible:ring-[#a64c34]/20"
               />
             </div>
 
@@ -85,13 +91,14 @@ export default function MarketingLoginPage() {
                   onChange={(e) => setPassword(e.target.value)}
                   required
                   disabled={loading}
-                  className="pr-10"
+                  className="h-11 border-[#d8cec2] bg-[#fffefa] pr-10 text-[#2b2926] placeholder:text-[#81796e] focus-visible:border-[#a64c34] focus-visible:ring-[#a64c34]/20"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none"
-                  tabIndex={-1}
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  aria-pressed={showPassword}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 rounded-md p-1 text-[#81796e] transition-colors hover:text-[#873b29] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#a64c34]"
                 >
                   {showPassword ? (
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -107,11 +114,11 @@ export default function MarketingLoginPage() {
               </div>
             </div>
 
-            <Button type="submit" className="w-full" disabled={loading}>
+            <Button type="submit" className="h-11 w-full bg-[#a64c34] text-white shadow-[0_8px_20px_rgba(166,76,52,0.16)] hover:bg-[#873b29]" disabled={loading}>
               {loading ? 'Signing in...' : 'Sign In'}
             </Button>
           </form>
-          <div className="mt-4 text-center text-sm text-gray-600">
+          <div className="mt-5 text-center text-sm text-[#6d675f]">
             <p>Contact your workspace administrator for access.</p>
           </div>
         </CardContent>

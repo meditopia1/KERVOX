@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 
 interface NavItem {
   name: string;
@@ -132,18 +133,22 @@ export default function MemberLayout({
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      <div className="premium-workspace flex min-h-screen items-center justify-center" role="status" aria-label="Opening member workspace">
+        <div className="flex items-center gap-3 rounded-xl border border-[#e6e0d7] bg-[#fffefa] px-5 py-4 shadow-sm">
+          <div className="h-5 w-5 animate-spin rounded-full border-2 border-[#e6d8ca] border-t-[#a64c34] motion-reduce:animate-none" aria-hidden="true" />
+          <span className="text-sm text-[#6d675f]">Opening your workspace...</span>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#f8fbff] text-[#06152d]">
+    <div className="premium-workspace min-h-screen bg-[#f8fbff] text-[#06152d]">
       {/* Mobile sidebar backdrop */}
       {sidebarOpen && (
         <div
-          className="fixed inset-0 z-40 bg-[#06152d]/50 lg:hidden"
+          data-workspace-backdrop
+          className="fixed inset-0 z-40 bg-[#2b2926]/45 lg:hidden"
           onClick={() => setSidebarOpen(false)}
           aria-hidden="true"
         />
@@ -152,17 +157,21 @@ export default function MemberLayout({
       {/* Sidebar */}
       <aside
         aria-label="Member navigation"
-        className={`fixed inset-y-0 left-0 z-40 w-64 max-w-[85vw] border-r border-[#dce8f7] bg-white transform transition-transform duration-300 ease-in-out lg:translate-x-0 ${
+        data-workspace-sidebar
+        className={`fixed inset-y-0 left-0 z-40 w-64 max-w-[85vw] border-r border-[#dce8f7] bg-white transform transition-transform duration-200 ease-in-out motion-reduce:transition-none lg:translate-x-0 ${
           sidebarOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
         <div className="flex flex-col h-full">
           {/* Logo */}
           <div className="flex items-center justify-between h-16 px-6 border-b border-[#dce8f7]">
-            <Link href="/member/dashboard" className="text-xl font-bold tracking-[0.16em] text-[#06152d]">KERVOX</Link>
+            <Link href="/member/dashboard" aria-label="KERVOX member dashboard" className="inline-flex items-center">
+              <Image src="/kervox-logo.svg" alt="KERVOX" width={148} height={30} className="h-[30px] w-auto" />
+            </Link>
             <button
+              type="button"
               onClick={() => setSidebarOpen(false)}
-              className="rounded-md p-2 text-[#52657d] hover:bg-[#f1f7ff] lg:hidden"
+              className="rounded-md p-2 text-[#6d675f] hover:bg-[#eee9e1] lg:hidden"
               aria-label="Close navigation"
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -172,7 +181,7 @@ export default function MemberLayout({
           </div>
 
           {/* Navigation */}
-          <nav aria-label="Primary navigation" className="flex-1 space-y-1 overflow-y-auto px-3 py-4">
+          <nav aria-label="Primary navigation" data-workspace-nav className="min-h-0 flex-1 space-y-1 overflow-x-hidden overflow-y-auto px-3 py-4">
             <p className="px-3 pb-2 pt-1 text-[10px] font-bold uppercase tracking-[0.2em] text-[#718096]">Your workspace</p>
             {navigation.map((item) => {
               const isActive = pathname === item.href || pathname?.startsWith(`${item.href}/`);
@@ -187,10 +196,10 @@ export default function MemberLayout({
           </nav>
 
           {/* User section */}
-          <div className="border-t border-[#dce8f7] p-4">
-            <div className="flex items-center mb-4">
-              <div className="w-10 h-10 rounded-full bg-[#eff6ff] flex items-center justify-center">
-                <span className="text-[#1d4ed8] font-semibold">
+          <div data-workspace-footer className="shrink-0 border-t border-[#dce8f7] p-3">
+            <div data-workspace-account className="mb-3 flex min-w-0 items-center rounded-lg px-2 py-2">
+              <div data-workspace-avatar className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#eff6ff]">
+                <span className="font-semibold text-[#873b29]">
                   {memberData?.first_name?.charAt(0).toUpperCase() || 'M'}
                 </span>
               </div>
@@ -202,6 +211,7 @@ export default function MemberLayout({
               </div>
             </div>
             <button
+              type="button"
               onClick={handleLogout}
               className="w-full flex items-center justify-center rounded-lg border border-[#dce8f7] bg-white px-4 py-2 text-sm font-medium text-[#52657d] transition-colors hover:bg-[#f1f7ff] hover:text-[#06152d]"
             >
@@ -215,12 +225,13 @@ export default function MemberLayout({
       </aside>
 
       {/* Main content */}
-      <div className="lg:pl-64">
+      <div className="min-w-0 lg:pl-64">
         {/* Mobile header */}
-        <div className="lg:hidden flex items-center justify-between h-16 px-4 bg-white border-b border-[#dce8f7]">
+        <div data-workspace-topbar className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-[#dce8f7] bg-white px-4 lg:hidden">
           <button
+            type="button"
             onClick={() => setSidebarOpen(true)}
-            className="rounded-md p-2 text-[#52657d] hover:bg-[#f1f7ff]"
+            className="rounded-md p-2 text-[#6d675f] hover:bg-[#eee9e1]"
             aria-label="Open navigation"
             aria-expanded={sidebarOpen}
           >
@@ -228,12 +239,12 @@ export default function MemberLayout({
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
             </svg>
           </button>
-          <span className="text-lg font-bold tracking-[0.16em] text-[#06152d]">KERVOX</span>
+          <Image src="/kervox-logo.svg" alt="KERVOX" width={128} height={26} className="h-[26px] w-auto" />
           <div className="w-6" /> {/* Spacer */}
         </div>
 
         {/* Page content */}
-        <main className="workspace-main min-h-[calc(100vh-4rem)]">{children}</main>
+        <main className="workspace-main member-workspace-main min-h-[calc(100vh-4rem)]">{children}</main>
       </div>
     </div>
   );

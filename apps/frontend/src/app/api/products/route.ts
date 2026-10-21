@@ -11,7 +11,7 @@ export async function GET() {
     const { data: products, error } = await supabase
       .from('products')
       .select('*')
-      .eq('is_active', true)
+      .eq('status', 'published')
       .order('monthly_premium', { ascending: true });
 
     if (error) {

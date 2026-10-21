@@ -1,7 +1,9 @@
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
+import './premium-workspace.css'
 import { AuthProvider } from '@/contexts/auth-context'
+import { SidebarPreferenceProvider } from '@/contexts/sidebar-preference-context'
 import { ToastProvider } from '@/components/ui/toast'
 
 const inter = Inter({ subsets: ['latin'] })
@@ -29,9 +31,11 @@ export default function RootLayout({
     <html lang="en">
       <body className={inter.className}>
         <AuthProvider>
-          <ToastProvider>
-            {children}
-          </ToastProvider>
+          <SidebarPreferenceProvider>
+            <ToastProvider>
+              {children}
+            </ToastProvider>
+          </SidebarPreferenceProvider>
         </AuthProvider>
       </body>
     </html>
