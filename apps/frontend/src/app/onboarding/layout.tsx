@@ -206,7 +206,7 @@ export default function OnboardingLayout({
 
           {/* Logout button */}
           <div data-workspace-footer className="px-3 pb-3 border-t border-gray-200 pt-3">
-            <Link href="/settings" className={`mb-2 flex min-h-10 items-center gap-3 rounded-lg px-3 text-sm font-medium text-[var(--kv-text-muted)] transition-colors hover:bg-[var(--kv-hover,#eee9e1)] hover:text-[var(--kv-ink)] ${sidebarCollapsed ? 'justify-center' : ''}`} title={sidebarCollapsed ? 'Settings' : undefined}>
+            <Link href="/onboarding/settings" aria-label="Settings" aria-current={pathname === '/onboarding/settings' ? 'page' : undefined} className={`mb-2 flex min-h-10 items-center gap-3 rounded-lg px-3 text-sm font-medium transition-colors hover:bg-[var(--kv-hover,#eee9e1)] hover:text-[var(--kv-ink)] ${pathname === '/onboarding/settings' ? 'bg-[var(--kv-accent-surface)] text-[var(--kv-accent-hover)]' : 'text-[var(--kv-text-muted)]'} ${sidebarCollapsed ? 'justify-center' : ''}`} title={sidebarCollapsed ? 'Settings' : undefined}>
               <Settings2 className="h-5 w-5 shrink-0" aria-hidden="true" />
               {!sidebarCollapsed && <span>Settings</span>}
             </Link>

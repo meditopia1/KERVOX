@@ -35,6 +35,25 @@ describe('collapsed sidebar branding', () => {
     });
   });
 
+  it.each([
+    'system_admin', 'operations_manager', 'broker', 'claims', 'claims_assessor',
+    'finance_manager', 'marketing_manager', 'compliance_officer', 'provider',
+    'call_centre_agent', 'ambulance_operator', 'africa_assist_authorization',
+  ])('provides Settings to the %s account', (role) => {
+    (authFetch as jest.Mock).mockResolvedValue({ ok: true, json: async () => ({ applications: [], newGopCount: 0 }) });
+    (useAuth as jest.Mock).mockReturnValue({
+      user: { id: 'user-1', email: 'user@example.com', roles: [role] },
+      loading: false,
+      logout: jest.fn(),
+    });
+
+    render(<SidebarLayout><div>Workspace content</div></SidebarLayout>);
+
+    const settingsLink = within(screen.getByRole('navigation', { name: 'Primary navigation' }))
+      .getByRole('link', { name: 'Settings' });
+    expect(settingsLink.getAttribute('href')).toBe('/settings');
+  });
+
   it('keeps the desktop sidebar collapsed when a page remounts after navigation', () => {
     const { rerender } = render(
       <SidebarPreferenceProvider>

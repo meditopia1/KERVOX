@@ -35,6 +35,7 @@ describe('member workspace layout', () => {
     const navigation = screen.getByRole('navigation', { name: 'Primary navigation' });
     const dashboardLink = within(navigation).getByRole('link', { name: 'Dashboard' });
     expect(dashboardLink.getAttribute('aria-current')).toBe('page');
+    expect(within(navigation).getByRole('link', { name: 'Settings' }).getAttribute('href')).toBe('/member/settings');
 
     fireEvent.click(screen.getByRole('button', { name: 'Open navigation' }));
     expect(screen.getByRole('button', { name: 'Close navigation' })).toBeTruthy();
