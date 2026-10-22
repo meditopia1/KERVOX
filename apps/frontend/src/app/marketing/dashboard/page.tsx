@@ -4,10 +4,9 @@ import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import {
   ArrowRight,
-  BarChart3,
   AlertCircle,
   ClipboardList,
-  Megaphone,
+  LayoutTemplate,
   Target,
   UserPlus,
   Users,
@@ -30,9 +29,7 @@ type MarketingStats = {
 
 const quickActions = [
   { label: 'Review leads', description: 'Work through your contact pipeline', href: '/marketing/leads', icon: Users },
-  { label: 'New campaign', description: 'Set up an outreach campaign', href: '/marketing/campaigns/new', icon: Megaphone },
-  { label: 'View analytics', description: 'Explore available performance data', href: '/marketing/analytics', icon: BarChart3 },
-  { label: 'Referral codes', description: 'Manage referral activity', href: '/marketing/referrals', icon: UserPlus },
+  { label: 'Manage landing pages', description: 'Review published pages and marketplace requests', href: '/marketing/landing-pages', icon: LayoutTemplate },
 ];
 
 const metricStyle = {
@@ -219,10 +216,10 @@ export default function MarketingDashboardPage() {
           <div className="mb-3 flex items-end justify-between gap-4">
             <div>
               <h2 id="quick-actions-title" className="text-lg font-semibold text-[#2d241e]">Keep work moving</h2>
-              <p className="mt-1 text-sm text-[#71665c]">Go directly to the tools your team uses most.</p>
+              <p className="mt-1 text-sm text-[#71665c]">Go directly to the connected tools available today.</p>
             </div>
           </div>
-          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          <div className="grid gap-3 sm:grid-cols-2">
             {quickActions.map(({ label, description, href, icon: Icon }) => (
               <Link key={href} href={href} className="group flex min-h-28 items-start gap-3 rounded-xl border border-[#e5d9cc] bg-white p-4 transition-colors hover:border-[#c9957f] hover:bg-[#fffaf5] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#a64c34]">
                 <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#f7e9de] text-[#a64c34]" aria-hidden="true"><Icon className="h-5 w-5" /></span>

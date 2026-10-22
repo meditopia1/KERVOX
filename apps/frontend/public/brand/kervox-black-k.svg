@@ -1,14 +1,14 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="217 180 576 576" fill="none">
-  <!-- Transparent background -->
+  <defs><linearGradient id="signatureGradient" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#12263B"/><stop offset="20%" stop-color="#B45137"/><stop offset="41%" stop-color="#F17642"/><stop offset="58%" stop-color="#C3173F"/><stop offset="76%" stop-color="#533B82"/><stop offset="100%" stop-color="#168BFF"/></linearGradient></defs>
   <!-- Stylized K monogram for KERVOX -->
   <g>
     <!-- Left vertical stem -->
-    <rect x="250" y="180" width="122" height="576" fill="#F5F7FA"/>
+    <rect x="250" y="180" width="122" height="576" fill="#F0F2F6"/>
 
     <!-- Upper navy diagonal -->
-    <polygon points="372,456 592,180 760,180 486,456" fill="#F5F7FA"/>
+    <polygon points="372,456 592,180 760,180 486,456" fill="url(#signatureGradient)"/>
 
     <!-- Lower blue diagonal -->
-    <polygon points="372,456 520,456 738,756 570,756" fill="#168CFB"/>
+    <polygon points="372,456 520,456 738,756 570,756" fill="url(#signatureGradient)"/>
   </g>
 </svg>

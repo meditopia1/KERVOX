@@ -38,7 +38,8 @@ describe('marketing dashboard', () => {
     expect(screen.getByText('50% of contacts')).toBeTruthy();
     expect(screen.queryByText('342%')).toBeNull();
     expect(screen.queryByText('Plan Selected')).toBeNull();
-    expect(screen.getByRole('link', { name: /New campaign/ }).getAttribute('href')).toBe('/marketing/campaigns/new');
+    expect(screen.getByRole('link', { name: /Manage landing pages/ }).getAttribute('href')).toBe('/marketing/landing-pages');
+    expect(screen.queryByRole('link', { name: /New campaign/ })).toBeNull();
   });
 
   it('lets staff retry when dashboard data is unavailable', async () => {

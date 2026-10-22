@@ -1028,7 +1028,7 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
       },
       {
         name: 'My Claims',
-        href: '/claims',
+        href: '/member/claims',
         glowColor: '#8b5cf6', // Purple
         icon: (
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -5,7 +5,7 @@ export default function Home() {
     <main className="min-h-screen bg-[#f7f5f0] text-[#2b2926]">
       <section className="premium-hero relative isolate flex min-h-screen flex-col overflow-hidden bg-[#f5f1e9]">
         <div className="absolute inset-0 -z-10">
-          <img src="/kervox-server-hero.png" alt="" fetchPriority="high" className="h-full w-full object-cover object-[68%_center] lg:-translate-y-[7%] lg:scale-[1.16] lg:object-center" />
+          <img src="/kervox-server-hero.png" alt="" loading="eager" decoding="async" className="h-full w-full object-cover object-[68%_center] lg:-translate-y-[7%] lg:scale-[1.16] lg:object-center" />
           <div className="absolute inset-0 bg-gradient-to-r from-[#f7f5f0] via-[#f7f5f0]/95 to-[#f7f5f0]/20 md:bg-[linear-gradient(90deg,rgba(247,245,240,0.99)_0%,rgba(247,245,240,0.95)_35%,rgba(247,245,240,0)_66%)]" />
         </div>
 

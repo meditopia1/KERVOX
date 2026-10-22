@@ -35,6 +35,7 @@ export default function ClaimsHistoryPage() {
   const [claims, setClaims] = useState<Claim[]>([]);
   const [stats, setStats] = useState<any>(null);
   const [loadingClaims, setLoadingClaims] = useState(true);
+  const [loadError, setLoadError] = useState('');
 
   useEffect(() => {
     if (isAuthenticated && user) {
@@ -47,6 +48,7 @@ export default function ClaimsHistoryPage() {
 
     try {
       setLoadingClaims(true);
+      setLoadError('');
       const params = new URLSearchParams();
       
       if (statusFilter) params.append('status', statusFilter);
@@ -55,8 +57,11 @@ export default function ClaimsHistoryPage() {
       if (searchTerm) params.append('search', searchTerm);
 
       const response = await authFetch(`/api/provider/claims?${params}`);
-      if (response.ok) {
-        const data = await response.json();
+      if (!response.ok) {
+        throw new Error(response.status === 401 ? 'Your session has expired. Please sign in again.' : 'Could not load claims history. Please try again.');
+      }
+      const data = await response.json();
+      if (!Array.isArray(data.claims)) throw new Error('Claims history is unavailable. Please try again.');
         
         // Transform data to match component interface
         const transformedClaims = (data.claims || []).map((claim: any) => ({
@@ -75,9 +80,11 @@ export default function ClaimsHistoryPage() {
         
         setClaims(transformedClaims);
         setStats(data.stats);
-      }
     } catch (error) {
       console.error('Error fetching claims:', error);
+      setClaims([]);
+      setStats(null);
+      setLoadError(error instanceof Error ? error.message : 'Could not load claims history. Please try again.');
     } finally {
       setLoadingClaims(false);
     }
@@ -185,6 +192,18 @@ export default function ClaimsHistoryPage() {
 
   if (!user) {
     return null;
+  }
+
+  if (!loadingClaims && loadError) {
+    return (
+      <SidebarLayout>
+        <div role="alert" className="mx-auto max-w-xl rounded-2xl border border-[var(--kv-line)] bg-[var(--kv-surface)] p-8 text-center">
+          <h1 className="text-xl font-semibold text-[var(--kv-ink)]">Claims history unavailable</h1>
+          <p className="mt-2 text-sm text-[var(--kv-text-muted)]">{loadError}</p>
+          <Button className="mt-5" type="button" onClick={() => void fetchClaims()}>Try again</Button>
+        </div>
+      </SidebarLayout>
+    );
   }
 
   const getStatusBadge = (status: Claim['status']) => {
