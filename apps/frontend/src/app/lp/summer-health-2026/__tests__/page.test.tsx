@@ -5,7 +5,7 @@ jest.mock('next/navigation', () => ({
   redirect: jest.fn(),
 }));
 
-it('redirects the retired campaign URL to the server marketplace', () => {
+it('redirects the retired campaign URL to the restored Summer 2026 funnel', () => {
   LegacyMarketplaceRedirect();
-  expect(redirect).toHaveBeenCalledWith('/lp/server-marketplace');
+  expect(redirect).toHaveBeenCalledWith('/lp/summer-2026');
 });

@@ -16,6 +16,7 @@ const PopoverContent = React.forwardRef<
   <PopoverPrimitive.Portal>
     <PopoverPrimitive.Content
       ref={ref}
+      data-kervox-popup
       align={align}
       sideOffset={sideOffset}
       className={cn(

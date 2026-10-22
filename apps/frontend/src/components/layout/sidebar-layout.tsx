@@ -2,14 +2,14 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
+import { BrandLogo } from '@/components/brand/brand-logo';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/auth-context';
 import { useSidebarPreference } from '@/contexts/sidebar-preference-context';
 import { Button } from '@/components/ui/button';
 import { InlinePageLoading } from '@/components/layout/page-loading';
 import { authFetch } from '@/lib/auth-fetch';
-import { Bell, ChevronRight, Menu, X } from 'lucide-react';
+import { Bell, ChevronRight, Menu, Settings2, X } from 'lucide-react';
 
 interface NavItem {
   name: string;
@@ -24,6 +24,7 @@ interface SidebarLayoutProps {
 }
 
 function getNavigationSection(href: string): string {
+  if (href === '/settings') return 'Account';
   if (href.startsWith('/admin/')) {
     if (['/admin/audit', '/admin/roles', '/admin/rules', '/admin/data-import'].includes(href)) return 'Governance';
     if (['/admin/providers', '/admin/brokers', '/admin/group-setup'].includes(href)) return 'Network';
@@ -1088,7 +1089,10 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
     ];
   };
 
-  const navigation = getNavigationForRole();
+  const navigation = user ? [
+    ...getNavigationForRole(),
+    { name: 'Settings', href: '/settings', icon: <Settings2 className="h-5 w-5" aria-hidden="true" /> },
+  ] : [];
   const navigationGroups = navigation.reduce<Array<{ title: string; items: NavItem[] }>>((groups, item) => {
     const title = groups.length === 0 ? 'Overview' : getNavigationSection(item.href);
     const group = groups[groups.length - 1];
@@ -1109,7 +1113,7 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
         <div className="flex min-h-screen">
           <aside className="hidden w-64 border-r border-[#dce8f7] bg-white lg:block">
             <div className="flex h-16 items-center border-b border-gray-200 px-4">
-              <Image src="/kervox-logo.svg" alt="KERVOX" width={157} height={32} className="h-8 w-auto" />
+              <BrandLogo width={157} height={32} />
             </div>
             <div className="space-y-3 px-3 py-4">
               {[...Array(6)].map((_, index) => (
@@ -1155,11 +1159,11 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
           {/* Logo */}
           <div className={`flex h-16 shrink-0 items-center justify-between border-b border-[#dce8f7] px-4 ${sidebarCollapsed ? 'lg:translate-x-[2px] lg:justify-center lg:gap-px lg:px-[3px]' : ''}`}>
             <Link href="/dashboard" className={`flex items-center ${sidebarCollapsed ? 'lg:hidden' : ''}`} aria-label="KERVOX dashboard">
-              <Image src="/kervox-logo.svg" alt="" width={157} height={32} className="h-8 w-auto" />
+              <BrandLogo width={157} height={32} decorative />
             </Link>
             {sidebarCollapsed && (
               <Link href="/dashboard" className="hidden h-7 w-7 shrink-0 items-center justify-center lg:flex lg:translate-x-[3px]" aria-label="KERVOX dashboard">
-                <Image src="/kervox-k.svg" alt="" width={28} height={28} className="h-7 w-7 object-contain" />
+                <BrandLogo mark="monogram" width={28} height={28} decorative />
               </Link>
             )}
             <button

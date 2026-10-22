@@ -1,0 +1,618 @@
+/* Brand art changes with the persisted theme before React hydrates. */
+:root {
+  --kv-wordmark-image: url('/brand/kervox-signature-wordmark.svg');
+  --kv-monogram-image: url('/brand/kervox-signature-k.svg');
+}
+
+html[data-kervox-theme="black"] {
+  --kv-wordmark-image: url('/brand/kervox-black-wordmark.svg');
+  --kv-monogram-image: url('/brand/kervox-black-k.svg');
+}
+
+html[data-kervox-theme="blue"] {
+  --kv-wordmark-image: url('/brand/kervox-blue-wordmark.svg');
+  --kv-monogram-image: url('/brand/kervox-blue-k.svg');
+}
+
+html[data-kervox-theme="red"] {
+  --kv-wordmark-image: url('/brand/kervox-red-wordmark.svg');
+  --kv-monogram-image: url('/brand/kervox-red-k.svg');
+}
+
+.kervox-brand-logo {
+  display: inline-block;
+  flex: none;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: contain;
+  transition: transform 180ms ease, filter 180ms ease;
+}
+
+.kervox-brand-logo[data-kervox-brand="wordmark"] { background-image: var(--kv-wordmark-image); }
+.kervox-brand-logo[data-kervox-brand="monogram"] { background-image: var(--kv-monogram-image); }
+
+a:hover > .kervox-brand-logo { transform: translateY(-1px); filter: drop-shadow(0 3px 7px rgba(76, 49, 36, .12)); }
+
+.premium-workspace [data-workspace-sidebar] > div > div:first-child { position: relative; }
+.premium-workspace [data-workspace-sidebar] > div > div:first-child::after {
+  position: absolute;
+  right: 12px;
+  bottom: -1px;
+  left: 12px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--kv-accent), transparent);
+  content: '';
+  opacity: .38;
+  pointer-events: none;
+}
+
+/* Public pages stay light; give the white Black wordmark a restrained dark plate. */
+html[data-kervox-theme="black"] .kervox-public-brand {
+  background: #1b211e;
+  border: 1px solid #35403d;
+  border-radius: 9px;
+  padding: 5px 10px;
+}
+
+html[data-kervox-theme="black"] .kervox-apply-mark { background: #1b211e; }
+
+@media (prefers-reduced-motion: reduce) {
+  .kervox-brand-logo { transition: none; }
+}
+
+/* KERVOX Signature is the existing default. These tokens only replace the workspace palette. */
+html[data-kervox-theme="blue"],
+html[data-kervox-theme="blue"] .premium-workspace {
+  --kv-ink: #0d2444;
+  --kv-ink-soft: #173153;
+  --kv-text-muted: #506781;
+  --kv-accent: #215ed8;
+  --kv-accent-hover: #184bb3;
+  --kv-on-accent: #ffffff;
+  --kv-line: #d5e1f0;
+  --kv-line-strong: #b9cce5;
+  --kv-surface: #ffffff;
+  --kv-canvas: #f1f6fd;
+  --kv-accent-surface: #e6efff;
+  --kv-surface-alt: #f8fbff;
+  --kv-sidebar: #f6f9fe;
+  --kv-sidebar-deep: #eaf1fc;
+  --kv-hover: #edf4ff;
+  --kv-metal: #76a5e7;
+  --kv-shadow: rgba(16, 55, 110, 0.09);
+  --background: 215 75% 97%;
+  --foreground: 215 68% 16%;
+  --card: 0 0% 100%;
+  --card-foreground: 215 68% 16%;
+  --primary: 219 74% 49%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 214 87% 95%;
+  --secondary-foreground: 215 68% 16%;
+  --accent: 214 100% 95%;
+  --accent-foreground: 218 74% 35%;
+  --muted: 215 72% 97%;
+  --muted-foreground: 214 23% 41%;
+  --border: 215 40% 89%;
+  --input: 214 42% 81%;
+  --ring: 219 74% 49%;
+}
+
+html[data-kervox-theme="red"],
+html[data-kervox-theme="red"] .premium-workspace {
+  --kv-ink: #352125;
+  --kv-ink-soft: #4a2d33;
+  --kv-text-muted: #735b60;
+  --kv-accent: #b42338;
+  --kv-accent-hover: #921b2e;
+  --kv-on-accent: #ffffff;
+  --kv-line: #efd9dc;
+  --kv-line-strong: #d9b9c0;
+  --kv-surface: #ffffff;
+  --kv-canvas: #fff5f6;
+  --kv-accent-surface: #fce9ec;
+  --kv-surface-alt: #fffafb;
+  --kv-sidebar: #fff8f9;
+  --kv-sidebar-deep: #faebee;
+  --kv-hover: #fcecef;
+  --kv-metal: #d78693;
+  --kv-shadow: rgba(103, 24, 42, 0.09);
+  --background: 354 100% 98%;
+  --foreground: 347 23% 17%;
+  --card: 0 0% 100%;
+  --card-foreground: 347 23% 17%;
+  --primary: 352 67% 42%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 352 72% 95%;
+  --secondary-foreground: 347 23% 17%;
+  --accent: 352 75% 94%;
+  --accent-foreground: 352 68% 34%;
+  --muted: 352 50% 98%;
+  --muted-foreground: 348 12% 40%;
+  --border: 351 39% 89%;
+  --input: 350 29% 79%;
+  --ring: 352 67% 42%;
+}
+
+html[data-kervox-theme="black"],
+html[data-kervox-theme="black"] .premium-workspace {
+  color-scheme: dark;
+  --kv-ink: #f3f5f4;
+  --kv-ink-soft: #e6eae8;
+  --kv-text-muted: #abb7b2;
+  --kv-accent: #e4e8e6;
+  --kv-accent-hover: #ffffff;
+  --kv-on-accent: #111518;
+  --kv-line: #35403d;
+  --kv-line-strong: #50615a;
+  --kv-surface: #202624;
+  --kv-canvas: #111614;
+  --kv-accent-surface: #35413c;
+  --kv-surface-alt: #252d29;
+  --kv-sidebar: #1b211e;
+  --kv-sidebar-deep: #141a17;
+  --kv-hover: #2b3530;
+  --kv-metal: #9baaa3;
+  --kv-shadow: rgba(0, 0, 0, 0.28);
+  --background: 144 12% 8%;
+  --foreground: 140 9% 95%;
+  --card: 150 9% 14%;
+  --card-foreground: 140 9% 95%;
+  --primary: 145 8% 90%;
+  --primary-foreground: 150 12% 9%;
+  --secondary: 144 9% 20%;
+  --secondary-foreground: 140 9% 95%;
+  --accent: 144 12% 22%;
+  --accent-foreground: 140 9% 95%;
+  --muted: 144 10% 18%;
+  --muted-foreground: 140 8% 72%;
+  --border: 144 9% 24%;
+  --input: 144 9% 28%;
+  --ring: 145 8% 90%;
+}
+
+/* Shared workspace surfaces and navigation. */
+html[data-kervox-theme]:not([data-kervox-theme="claude"]) .premium-workspace {
+  background: var(--kv-canvas);
+  color: var(--kv-ink);
+}
+
+html[data-kervox-theme]:not([data-kervox-theme="claude"]) .premium-workspace [data-workspace-sidebar] {
+  border-color: var(--kv-line);
+  background: linear-gradient(165deg, var(--kv-sidebar), var(--kv-sidebar-deep));
+  box-shadow: 10px 0 32px var(--kv-shadow);
+}
+
+html[data-kervox-theme]:not([data-kervox-theme="claude"]) .premium-workspace [data-workspace-sidebar] > div > div:first-child,
+html[data-kervox-theme]:not([data-kervox-theme="claude"]) .premium-workspace [data-workspace-footer] {
+  border-color: var(--kv-line);
+  background: var(--kv-sidebar);
+}
+
+html[data-kervox-theme]:not([data-kervox-theme="claude"]) .premium-workspace [data-workspace-section]:not(:first-child) {
+  border-color: var(--kv-line);
+}
+
+html[data-kervox-theme]:not([data-kervox-theme="claude"]) .premium-workspace [data-workspace-section-label],
+html[data-kervox-theme]:not([data-kervox-theme="claude"]) .premium-workspace [aria-label="Member navigation"] [data-workspace-nav] > p {
+  color: var(--kv-text-muted);
+}
+
+html[data-kervox-theme]:not([data-kervox-theme="claude"]) .premium-workspace [data-workspace-nav-item],
+html[data-kervox-theme]:not([data-kervox-theme="claude"]) .premium-workspace [aria-label="Member navigation"] [data-workspace-nav] a {
+  color: var(--kv-text-muted);
+}
+
+html[data-kervox-theme]:not([data-kervox-theme="claude"]) .premium-workspace [data-workspace-nav] a:hover [data-workspace-nav-item],
+html[data-kervox-theme]:not([data-kervox-theme="claude"]) .premium-workspace [aria-label="Member navigation"] [data-workspace-nav] a:hover {
+  border-color: var(--kv-line);
+  background: var(--kv-hover);
+  color: var(--kv-ink);
+}
+
+html[data-kervox-theme]:not([data-kervox-theme="claude"]) .premium-workspace [data-workspace-nav] a[aria-current="page"] [data-workspace-nav-item],
+html[data-kervox-theme]:not([data-kervox-theme="claude"]) .premium-workspace [data-workspace-nav] a[aria-current="page"]:hover [data-workspace-nav-item],
+html[data-kervox-theme]:not([data-kervox-theme="claude"]) .premium-workspace [aria-label="Member navigation"] [data-workspace-nav] a[aria-current="page"] {
+  border-color: var(--kv-line-strong);
+  background: var(--kv-accent-surface);
+  color: var(--kv-ink);
+  box-shadow: 0 7px 20px var(--kv-shadow);
+}
+
+html[data-kervox-theme]:not([data-kervox-theme="claude"]) .premium-workspace [data-workspace-nav] a[aria-current="page"] span[aria-hidden="true"].absolute,
+html[data-kervox-theme]:not([data-kervox-theme="claude"]) .premium-workspace [aria-label="Member navigation"] [data-workspace-nav] a[aria-current="page"] > span[aria-hidden="true"] {
+  background: var(--kv-accent);
+}
+
+html[data-kervox-theme]:not([data-kervox-theme="claude"]) .premium-workspace [data-workspace-nav-item] {
+  --glow-color: var(--kv-accent) !important;
+  --glow-color-via: color-mix(in srgb, var(--kv-accent) 6%, transparent) !important;
+  --glow-color-to: color-mix(in srgb, var(--kv-accent) 14%, transparent) !important;
+}
+
+html[data-kervox-theme]:not([data-kervox-theme="claude"]) .premium-workspace [data-workspace-topbar] {
+  border-color: var(--kv-line);
+  background: color-mix(in srgb, var(--kv-surface) 96%, transparent);
+  color: var(--kv-ink);
+  box-shadow: 0 12px 32px var(--kv-shadow);
+}
+
+html[data-kervox-theme]:not([data-kervox-theme="claude"]) .premium-workspace [data-workspace-topbar]::after {
+  background: linear-gradient(90deg, transparent, var(--kv-accent), var(--kv-metal), transparent);
+}
+
+html[data-kervox-theme]:not([data-kervox-theme="claude"]) .premium-workspace [data-workspace-topbar] :is(span, a, button),
+html[data-kervox-theme]:not([data-kervox-theme="claude"]) .premium-workspace [data-workspace-account] {
+  color: var(--kv-ink);
+}
+
+html[data-kervox-theme]:not([data-kervox-theme="claude"]) .premium-workspace [data-workspace-account],
+html[data-kervox-theme]:not([data-kervox-theme="claude"]) .premium-workspace [data-workspace-avatar],
+html[data-kervox-theme]:not([data-kervox-theme="claude"]) .premium-workspace [data-workspace-topbar] a[aria-label="Open profile"] {
+  border-color: var(--kv-line);
+  background: var(--kv-accent-surface);
+  color: var(--kv-ink);
+}
+
+html[data-kervox-theme]:not([data-kervox-theme="claude"]) .premium-workspace [data-workspace-account] :is(.text-gray-900, .text-gray-500, [class*="text-[#06152d]"], [class*="text-[#52657d]"]) {
+  color: var(--kv-ink);
+}
+
+html[data-kervox-theme]:not([data-kervox-theme="claude"]) .premium-workspace [data-workspace-account] :is(.text-gray-500, [class*="text-[#52657d]"]) {
+  color: var(--kv-text-muted);
+}
+
+html[data-kervox-theme]:not([data-kervox-theme="claude"]) .premium-workspace [data-workspace-avatar] {
+  background: linear-gradient(145deg, var(--kv-accent-surface), var(--kv-surface-alt));
+}
+
+html[data-kervox-theme]:not([data-kervox-theme="claude"]) .premium-workspace [data-workspace-logout],
+html[data-kervox-theme]:not([data-kervox-theme="claude"]) .premium-workspace [aria-label="Member navigation"] [data-workspace-nav] + div button {
+  color: var(--kv-text-muted);
+}
+
+html[data-kervox-theme]:not([data-kervox-theme="claude"]) .premium-workspace [data-workspace-logout]:hover,
+html[data-kervox-theme]:not([data-kervox-theme="claude"]) .premium-workspace [aria-label="Member navigation"] [data-workspace-nav] + div button:hover {
+  background: var(--kv-hover);
+  color: var(--kv-ink);
+}
+
+/* Page backgrounds, custom panels, controls, tables, and dialogs. */
+html[data-kervox-theme]:not([data-kervox-theme="claude"]) .premium-workspace [data-workspace-content],
+html[data-kervox-theme]:not([data-kervox-theme="claude"]) .premium-workspace .member-workspace-main {
+  background: radial-gradient(ellipse 45rem 25rem at 85% -8%, color-mix(in srgb, var(--kv-accent) 11%, transparent), transparent 76%), var(--kv-canvas);
+  color: var(--kv-ink);
+}
+
+html[data-kervox-theme]:not([data-kervox-theme="claude"]) .premium-workspace .workspace-main :is([data-kervox-card], [data-kervox-metric], .kervox-panel, .premium-panel),
+html[data-kervox-theme]:not([data-kervox-theme="claude"]) .premium-workspace .dashboard-main :is(.rounded-xl, .rounded-2xl),
+html[data-kervox-theme]:not([data-kervox-theme="claude"]) .premium-workspace .workspace-main :is(div, section, article)[class*="bg-white"][class*="border"] {
+  border-color: var(--kv-line);
+  background: var(--kv-surface);
+  box-shadow: 0 1px 3px var(--kv-shadow), 0 12px 32px var(--kv-shadow);
+}
+
+html[data-kervox-theme]:not([data-kervox-theme="claude"]) .premium-workspace .workspace-main [data-kervox-metric] {
+  background: linear-gradient(145deg, var(--kv-surface), var(--kv-surface-alt));
+}
+
+html[data-kervox-theme]:not([data-kervox-theme="claude"]) .premium-workspace .workspace-main [data-kervox-metric][data-kervox-metric-variant="executive"] > div:first-child {
+  background: linear-gradient(90deg, var(--kv-accent), var(--kv-metal));
+}
+
+html[data-kervox-theme]:not([data-kervox-theme="claude"]) .premium-workspace .workspace-main :is([data-kervox-card], [data-kervox-metric], .kervox-panel, .premium-panel):hover {
+  border-color: var(--kv-line-strong);
+  box-shadow: 0 18px 38px var(--kv-shadow);
+}
+
+html[data-kervox-theme]:not([data-kervox-theme="claude"]) .premium-workspace .workspace-main :is(h1, h2, h3, h4),
+html[data-kervox-theme]:not([data-kervox-theme="claude"]) .premium-workspace .workspace-main > div > div:first-child h1 {
+  color: var(--kv-ink);
+}
+
+html[data-kervox-theme]:not([data-kervox-theme="claude"]) .premium-workspace .workspace-main [data-kervox-button][data-kervox-variant="default"] {
+  border-color: var(--kv-accent);
+  background: linear-gradient(135deg, var(--kv-accent), var(--kv-accent-hover));
+  color: var(--kv-on-accent);
+  box-shadow: 0 8px 18px var(--kv-shadow);
+}
+
+html[data-kervox-theme]:not([data-kervox-theme="claude"]) .premium-workspace .workspace-main [data-kervox-button][data-kervox-variant="default"]:hover:not(:disabled) {
+  background: var(--kv-accent-hover);
+  color: var(--kv-on-accent);
+}
+
+html[data-kervox-theme]:not([data-kervox-theme="claude"]) .premium-workspace .workspace-main [data-kervox-button][data-kervox-variant="outline"],
+html[data-kervox-theme]:not([data-kervox-theme="claude"]) .premium-workspace .workspace-main [data-kervox-input],
+html[data-kervox-theme]:not([data-kervox-theme="claude"]) .premium-workspace .workspace-main :is(select, textarea):not([data-kervox-input]) {
+  border-color: var(--kv-line-strong);
+  background: var(--kv-surface);
+  color: var(--kv-ink);
+}
+
+html[data-kervox-theme]:not([data-kervox-theme="claude"]) .premium-workspace .workspace-main [data-kervox-button][data-kervox-variant="outline"]:hover:not(:disabled) {
+  background: var(--kv-hover);
+  border-color: var(--kv-accent);
+}
+
+html[data-kervox-theme]:not([data-kervox-theme="claude"]) .premium-workspace .workspace-main :is(input, select, textarea):focus-visible,
+html[data-kervox-theme]:not([data-kervox-theme="claude"]) .premium-workspace .workspace-main :is(button, a):focus-visible {
+  border-color: var(--kv-accent);
+  outline-color: var(--kv-accent);
+}
+
+html[data-kervox-theme]:not([data-kervox-theme="claude"]) .premium-workspace .workspace-main :is(input, select, textarea) {
+  accent-color: var(--kv-accent);
+}
+
+html[data-kervox-theme]:not([data-kervox-theme="claude"]) .premium-workspace .workspace-main :is(input, select, textarea)::placeholder {
+  color: var(--kv-text-muted);
+}
+
+html[data-kervox-theme]:not([data-kervox-theme="claude"]) .premium-workspace .workspace-main :is(input, select, textarea):disabled {
+  background: var(--kv-surface-alt);
+  color: var(--kv-text-muted);
+}
+
+html[data-kervox-theme]:not([data-kervox-theme="claude"]) .premium-workspace .workspace-main table thead th {
+  background: var(--kv-sidebar-deep);
+  color: var(--kv-text-muted);
+}
+
+html[data-kervox-theme]:not([data-kervox-theme="claude"]) .premium-workspace .workspace-main table tbody td {
+  border-color: var(--kv-line);
+}
+
+html[data-kervox-theme]:not([data-kervox-theme="claude"]) .premium-workspace .workspace-main table tbody tr:hover td,
+html[data-kervox-theme]:not([data-kervox-theme="claude"]) .premium-workspace .workspace-main table tbody tr:focus-within td {
+  background: var(--kv-hover);
+}
+
+html[data-kervox-theme]:not([data-kervox-theme="claude"]) .premium-workspace [data-kervox-tabs-list],
+html[data-kervox-theme]:not([data-kervox-theme="claude"]) .premium-workspace [data-kervox-loading] {
+  border-color: var(--kv-line);
+  background: var(--kv-sidebar-deep);
+}
+
+html[data-kervox-theme]:not([data-kervox-theme="claude"]) .premium-workspace [data-kervox-tabs-trigger][data-state="active"] {
+  background: var(--kv-surface);
+  color: var(--kv-accent-hover);
+}
+
+html[data-kervox-theme]:not([data-kervox-theme="claude"]) .premium-workspace .workspace-main.kervox-marketing .grid > .relative.overflow-hidden[style],
+html[data-kervox-theme]:not([data-kervox-theme="claude"]) .premium-workspace .workspace-main .premium-admin-dashboard [data-kervox-card] {
+  --glow-color: var(--kv-accent) !important;
+  --glow-color-via: color-mix(in srgb, var(--kv-accent) 5%, transparent) !important;
+  --glow-color-to: color-mix(in srgb, var(--kv-accent) 12%, transparent) !important;
+}
+
+/* Existing role pages still use direct Tailwind palette classes in places. */
+html[data-kervox-theme]:not([data-kervox-theme="claude"]) .premium-workspace .workspace-main :is(.bg-white, .bg-gray-50, .bg-slate-50, [class*="bg-[#fffefa]"], [class*="bg-[#fcfaf6]"], [class*="bg-[#f8fbff]"]) {
+  background-color: var(--kv-surface);
+}
+
+html[data-kervox-theme]:not([data-kervox-theme="claude"]) .premium-workspace .workspace-main :is(.bg-gray-100, .bg-slate-100, [class*="bg-[#f7f5f0]"], [class*="bg-[#f9f6f0]"], [class*="bg-[#f1ede7]"]) {
+  background-color: var(--kv-surface-alt);
+}
+
+html[data-kervox-theme]:not([data-kervox-theme="claude"]) .premium-workspace .workspace-main :is(.bg-gray-200, .bg-slate-200, [class*="bg-[#eee9e1]"], [class*="bg-[#f1f7ff]"]) {
+  background-color: var(--kv-hover);
+}
+
+html[data-kervox-theme]:not([data-kervox-theme="claude"]) .premium-workspace .workspace-main [class*="bg-[#2b2926]"] {
+  background-color: var(--kv-ink);
+  color: var(--kv-surface);
+}
+
+html[data-kervox-theme="black"] .premium-workspace .workspace-main [class*="bg-[#2b2926]"] {
+  background-color: var(--kv-surface-alt);
+  color: var(--kv-ink);
+}
+
+html[data-kervox-theme]:not([data-kervox-theme="claude"]) .premium-workspace .workspace-main :is(.bg-blue-50, .bg-blue-100, .bg-purple-50, .bg-purple-100, .bg-pink-50, [class*="bg-[#faf0e9]"], [class*="bg-[#f5e6dd]"], [class*="bg-[#f4e5da]"]) {
+  background-color: var(--kv-accent-surface);
+}
+
+html[data-kervox-theme]:not([data-kervox-theme="claude"]) .premium-workspace .workspace-main :is(.text-gray-900, .text-gray-800, .text-slate-950, .text-slate-900, [class*="text-[#2b2926]"], [class*="text-[#39352f]"], [class*="text-[#06152d]"]) {
+  color: var(--kv-ink);
+}
+
+html[data-kervox-theme]:not([data-kervox-theme="claude"]) .premium-workspace .workspace-main :is(.text-gray-600, .text-gray-500, .text-slate-600, .text-slate-500, [class*="text-[#6d675f]"], [class*="text-[#81796e]"], [class*="text-[#52657d]"]) {
+  color: var(--kv-text-muted);
+}
+
+html[data-kervox-theme]:not([data-kervox-theme="claude"]) .premium-workspace .workspace-main :is(.text-gray-700, .text-gray-400, .text-slate-700, [class*="text-[#71665c]"], [class*="text-[#554d45]"], [class*="text-[#718096]"]) {
+  color: var(--kv-text-muted);
+}
+
+html[data-kervox-theme]:not([data-kervox-theme="claude"]) .premium-workspace .workspace-main :is(.text-blue-500, .text-blue-600, .text-blue-700, .text-blue-800, .text-blue-900, .text-purple-600, .text-purple-700, .text-pink-600, [class*="text-[#a64c34]"], [class*="text-[#873b29]"], [class*="text-[#2563eb]"], [class*="text-[#1d4ed8]"]) {
+  color: var(--kv-accent-hover);
+}
+
+html[data-kervox-theme]:not([data-kervox-theme="claude"]) .premium-workspace .workspace-main :is(.bg-blue-600, .bg-blue-700, .bg-purple-600, .bg-purple-700, .bg-pink-600, [class*="bg-[#a64c34]"], [class*="bg-[#873b29]"]) {
+  background-color: var(--kv-accent);
+  color: var(--kv-on-accent);
+}
+
+html[data-kervox-theme]:not([data-kervox-theme="claude"]) .premium-workspace .workspace-main :is(button, a):is(.bg-green-600, .bg-green-700, .bg-blue-600, .bg-blue-700, .bg-purple-600, .bg-purple-700) {
+  background-color: var(--kv-accent);
+  color: var(--kv-on-accent);
+}
+
+html[data-kervox-theme]:not([data-kervox-theme="claude"]) .premium-workspace .workspace-main :is(button, a):is(.bg-green-600, .bg-green-700, .bg-blue-600, .bg-blue-700, .bg-purple-600, .bg-purple-700):hover {
+  background-color: var(--kv-accent-hover);
+}
+
+html[data-kervox-theme]:not([data-kervox-theme="claude"]) .premium-workspace .workspace-main :is([class*="from-green-600"], [class*="from-blue-600"]) {
+  --tw-gradient-from: var(--kv-accent);
+}
+
+html[data-kervox-theme]:not([data-kervox-theme="claude"]) .premium-workspace .workspace-main :is([class*="to-green-700"], [class*="to-blue-700"]) {
+  --tw-gradient-to: var(--kv-accent-hover);
+}
+
+html[data-kervox-theme]:not([data-kervox-theme="claude"]) .premium-workspace .workspace-main :is(.border-blue-200, .border-blue-300, .border-purple-300, .border-gray-200, .border-gray-300, .border-slate-200, .border-slate-300, [class*="border-[#e6e0d7]"], [class*="border-[#dce8f7]"], [class*="border-[#eae3da]"], [class*="border-[#d8cec2]"]) {
+  border-color: var(--kv-line);
+}
+
+html[data-kervox-theme]:not([data-kervox-theme="claude"]) .premium-workspace .workspace-main :is(.border-blue-500, .border-blue-600, [class*="border-[#a64c34]"]) {
+  border-color: var(--kv-accent);
+}
+
+html[data-kervox-theme]:not([data-kervox-theme="claude"]) .premium-workspace .workspace-main .kervox-eyebrow {
+  color: var(--kv-accent-hover);
+}
+
+/* Shared overlays live at document level, outside the workspace element. */
+html[data-kervox-theme]:not([data-kervox-theme="claude"]) [data-kervox-dialog-content],
+html[data-kervox-theme]:not([data-kervox-theme="claude"]) [data-kervox-toast][data-toast-type="info"],
+html[data-kervox-theme]:not([data-kervox-theme="claude"]) [data-kervox-popup] {
+  border-color: var(--kv-line);
+  background: var(--kv-surface);
+  color: var(--kv-ink);
+}
+
+html[data-kervox-theme]:not([data-kervox-theme="claude"]) [data-kervox-popup-item] {
+  color: var(--kv-ink);
+}
+
+html[data-kervox-theme]:not([data-kervox-theme="claude"]) [data-kervox-popup-item]:is(:focus, [data-state="open"], [data-state="checked"]),
+html[data-kervox-theme]:not([data-kervox-theme="claude"]) [data-kervox-popup-item]:is(:hover, :focus) {
+  background: var(--kv-accent-surface);
+  color: var(--kv-ink);
+}
+
+html[data-kervox-theme]:not([data-kervox-theme="claude"]) [data-kervox-select-trigger] {
+  border-color: var(--kv-line-strong);
+  background: var(--kv-surface);
+  color: var(--kv-ink);
+}
+
+html[data-kervox-theme]:not([data-kervox-theme="claude"]) [data-kervox-dialog-content] .text-gray-600,
+html[data-kervox-theme]:not([data-kervox-theme="claude"]) [data-kervox-toast] .text-gray-600 {
+  color: var(--kv-text-muted);
+}
+
+html[data-kervox-theme]:not([data-kervox-theme="claude"]) [data-kervox-toast] .text-gray-900 {
+  color: var(--kv-ink);
+}
+
+html[data-kervox-theme]:not([data-kervox-theme="claude"]) [data-kervox-toast][data-toast-type="info"]::before {
+  background: linear-gradient(90deg, var(--kv-accent), var(--kv-metal));
+}
+
+html[data-kervox-theme="black"] .premium-workspace .workspace-main :is(.bg-gray-100, .bg-gray-200, .bg-slate-100, .bg-slate-200, [class*="bg-[#f7f5f0]"], [class*="bg-[#f1ede7]"]) {
+  background-color: var(--kv-surface-alt);
+}
+
+html[data-kervox-theme="black"] .premium-workspace .workspace-main :is(.border-gray-100, .border-gray-200, .border-gray-300, .border-slate-200, .border-slate-300) {
+  border-color: var(--kv-line);
+}
+
+html[data-kervox-theme="black"] .premium-workspace .workspace-main :is(.text-gray-700, .text-slate-700, [class*="text-[#5c554d]"]) {
+  color: var(--kv-text-muted);
+}
+
+html[data-kervox-theme="black"] .premium-workspace .workspace-main :is(.text-black, .text-slate-800, [class*="text-[#2d241e]"]) {
+  color: var(--kv-ink);
+}
+
+html[data-kervox-theme="black"] .premium-workspace [data-workspace-backdrop] {
+  background: rgba(0, 0, 0, 0.65);
+}
+
+/* Authentication screens use the same palette after a theme has been selected. */
+html[data-kervox-theme]:not([data-kervox-theme="claude"]) .premium-login {
+  background: var(--kv-canvas);
+  color: var(--kv-ink);
+}
+
+html[data-kervox-theme]:not([data-kervox-theme="claude"]) .premium-login > div[aria-hidden="true"] > div:first-child {
+  background: radial-gradient(ellipse at 50% 0%, var(--kv-surface) 0%, var(--kv-canvas) 66%);
+}
+
+html[data-kervox-theme]:not([data-kervox-theme="claude"]) .premium-marketing-login > div[aria-hidden="true"] {
+  background: radial-gradient(ellipse at 50% 10%, var(--kv-surface) 0%, var(--kv-canvas) 70%);
+}
+
+html[data-kervox-theme]:not([data-kervox-theme="claude"]) .premium-login > div[aria-hidden="true"] > div:nth-child(3) {
+  background: color-mix(in srgb, var(--kv-accent) 17%, transparent);
+}
+
+html[data-kervox-theme]:not([data-kervox-theme="claude"]) .premium-login > div[aria-hidden="true"] > div:nth-child(2) {
+  background-image: linear-gradient(color-mix(in srgb, var(--kv-line) 45%, transparent) 1px, transparent 1px), linear-gradient(90deg, color-mix(in srgb, var(--kv-line) 45%, transparent) 1px, transparent 1px) !important;
+  opacity: 0.2;
+}
+
+html[data-kervox-theme]:not([data-kervox-theme="claude"]) .premium-login .premium-login-card {
+  border-color: var(--kv-line);
+  background: var(--kv-surface);
+  color: var(--kv-ink);
+}
+
+html[data-kervox-theme]:not([data-kervox-theme="claude"]) .premium-login .premium-login-card::before {
+  background: linear-gradient(90deg, var(--kv-accent), var(--kv-metal));
+}
+
+html[data-kervox-theme]:not([data-kervox-theme="claude"]) .premium-login :is(h1, h2, h3),
+html[data-kervox-theme]:not([data-kervox-theme="claude"]) .premium-login :is(.text-gray-900, .text-gray-800, [class*="text-[#2b2926]"]) {
+  color: var(--kv-ink);
+}
+
+html[data-kervox-theme]:not([data-kervox-theme="claude"]) .premium-login :is(.text-gray-600, .text-gray-500, [class*="text-[#6d675f]"], [class*="text-[#5c554d]"]) {
+  color: var(--kv-text-muted);
+}
+
+html[data-kervox-theme]:not([data-kervox-theme="claude"]) .premium-login :is([class*="text-[#a64c34]"], [class*="text-[#873b29]"]) {
+  color: var(--kv-accent-hover);
+}
+
+html[data-kervox-theme]:not([data-kervox-theme="claude"]) .premium-login :is([class*="bg-[#f5e6dd]"], [class*="bg-[#eee9e1]"]) {
+  background-color: var(--kv-accent-surface);
+}
+
+html[data-kervox-theme]:not([data-kervox-theme="claude"]) .premium-login label,
+html[data-kervox-theme]:not([data-kervox-theme="claude"]) .premium-login .text-black {
+  color: var(--kv-ink);
+}
+
+html[data-kervox-theme]:not([data-kervox-theme="claude"]) .premium-login :is(input, select, textarea) {
+  border-color: var(--kv-line-strong);
+  background: var(--kv-surface);
+  color: var(--kv-ink);
+}
+
+html[data-kervox-theme]:not([data-kervox-theme="claude"]) .premium-login :is(input, select, textarea)::placeholder {
+  color: var(--kv-text-muted);
+  opacity: 0.9;
+}
+
+html[data-kervox-theme]:not([data-kervox-theme="claude"]) .premium-login button[type="submit"] {
+  border-color: var(--kv-accent);
+  background: var(--kv-accent);
+  color: var(--kv-on-accent);
+}
+
+html[data-kervox-theme]:not([data-kervox-theme="claude"]) .premium-login button[type="submit"]:hover:not(:disabled) {
+  background: var(--kv-accent-hover);
+  color: var(--kv-on-accent);
+}
+
+html[data-kervox-theme]:not([data-kervox-theme="claude"]) .premium-login input:focus-visible {
+  border-color: var(--kv-accent);
+  outline-color: var(--kv-accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--kv-accent) 18%, transparent);
+}
+
+html[data-kervox-theme]:not([data-kervox-theme="claude"]) .premium-workspace [data-theme-option][data-selected="true"] {
+  border-color: var(--kv-accent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--kv-accent) 25%, transparent), 0 12px 28px var(--kv-shadow);
+}
+
+.premium-workspace [data-theme-option][data-selected="true"] {
+  border-color: var(--kv-accent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--kv-accent) 22%, transparent), 0 12px 28px rgba(49, 37, 28, 0.08);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .premium-workspace [data-theme-option] { transition: none; }
+}

@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import Image from 'next/image';
+import { BrandLogo } from '@/components/brand/brand-logo';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/auth-context';
 import { Button } from '@/components/ui/button';
@@ -38,7 +38,7 @@ export default function MarketingLoginPage() {
       <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_50%_10%,#fffefa_0%,#f7f5f0_68%)]" />
       <Card className="premium-login-card relative w-full max-w-md border-[#e6e0d7] bg-[#fffefa] shadow-[0_24px_64px_rgba(49,37,28,0.09)]">
         <CardHeader className="space-y-1">
-          <Link href="/" aria-label="KERVOX home" className="mb-5 flex justify-center"><Image src="/kervox-logo.svg" alt="KERVOX" width={145} height={30} className="h-[30px] w-auto" /></Link>
+          <Link href="/" aria-label="KERVOX home" className="kervox-public-brand mb-5 flex justify-center"><BrandLogo width={145} height={30} decorative /></Link>
           <div className="flex items-center justify-center mb-4">
             <div className="flex h-14 w-14 items-center justify-center rounded-xl border border-[#e8cfc0] bg-[#f5e6dd] text-[#a64c34] shadow-[inset_0_1px_0_rgba(255,255,255,.8)]">
               <svg className="h-7 w-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">

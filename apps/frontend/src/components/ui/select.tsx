@@ -18,6 +18,7 @@ const SelectTrigger = React.forwardRef<
 >(({ className, children, ...props }, ref) => (
   <SelectPrimitive.Trigger
     ref={ref}
+    data-kervox-select-trigger
     className={cn(
       "flex h-9 w-full items-center justify-between gap-2 rounded-lg border border-[#d8cec2] bg-[#fffefa] px-3 py-2 text-start text-sm text-[#2b2926] shadow-sm shadow-black/5 focus:border-[#a64c34] focus:outline-none focus:ring-[3px] focus:ring-[#a64c34]/20 disabled:cursor-not-allowed disabled:opacity-50 data-[placeholder]:text-[#81796e] [&>span]:min-w-0",
       className,
@@ -67,6 +68,7 @@ const SelectContent = React.forwardRef<
   <SelectPrimitive.Portal>
     <SelectPrimitive.Content
       ref={ref}
+      data-kervox-popup
       className={cn(
         "relative z-50 max-h-[min(24rem,var(--radix-select-content-available-height))] min-w-[8rem] overflow-hidden rounded-lg border border-[#e6e0d7] bg-[#fffefa] text-[#2b2926] shadow-[0_18px_40px_rgba(49,37,28,0.14)] data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 [&_[role=group]]:py-1",
         position === "popper" &&
@@ -106,6 +108,7 @@ const SelectItem = React.forwardRef<
 >(({ className, children, ...props }, ref) => (
   <SelectPrimitive.Item
     ref={ref}
+    data-kervox-popup-item
     className={cn(
       "relative flex w-full cursor-default select-none items-center rounded-md py-1.5 pe-2 ps-8 text-sm outline-none focus:bg-[#f7eae3] focus:text-[#873b29] data-[state=checked]:text-[#873b29] data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
       className,

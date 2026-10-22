@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation';
 
-// Preserve existing shared links without showing the retired campaign URL.
+// Preserve legacy campaign links by forwarding them to the restored campaign.
 export default function LegacyMarketplaceRedirect() {
-  redirect('/lp/server-marketplace');
+  redirect('/lp/summer-2026');
 }

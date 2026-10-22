@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import Image from 'next/image';
+import { BrandLogo } from '@/components/brand/brand-logo';
 import Link from 'next/link';
 import {
   ArrowDown,
@@ -136,7 +137,12 @@ function ProductInquiry({ product, onBuy, onSell }: { product: Product; onBuy: (
   );
 }
 
-export function OriginalMarketingLandingPage(_props: { content: unknown }) {
+export function OriginalMarketingLandingPage({
+  campaignName = 'KERVOX Server Marketplace',
+}: {
+  content: unknown;
+  campaignName?: string;
+}) {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [requestMode, setRequestMode] = useState<'buy' | 'sell' | null>(null);
   const [requestProduct, setRequestProduct] = useState<{ name: string; category: string; condition: 'new' | 'refurbished'; quantity: number }>({ name: products[0].name, category: products[0].category, condition: 'new', quantity: 1 });
@@ -155,7 +161,7 @@ export function OriginalMarketingLandingPage(_props: { content: unknown }) {
       <header className="sticky top-0 z-30 border-b border-[#e6e0d7] bg-[#fffefa]/95 backdrop-blur-md">
         <div className="mx-auto flex min-h-[72px] max-w-7xl items-center justify-between gap-4 px-5 py-4 sm:px-8">
           <Link href="/" aria-label="KERVOX home" className="inline-flex items-center">
-            <Image src="/kervox-logo.svg" alt="KERVOX" width={145} height={30} className="h-[30px] w-auto" />
+            <span className="kervox-public-brand inline-flex items-center"><BrandLogo width={145} height={30} /></span>
           </Link>
           <nav aria-label="Marketplace navigation" className="flex items-center gap-3 sm:gap-6">
             <a href="#products" className="hidden text-sm font-medium text-[#554d45] hover:text-[#873b29] sm:inline">Explore products</a>
@@ -177,7 +183,7 @@ export function OriginalMarketingLandingPage(_props: { content: unknown }) {
         <motion.div aria-hidden="true" className="pointer-events-none absolute -right-20 top-16 -z-10 h-96 w-96 rounded-full bg-[#d9a185]/20 blur-[100px]" animate={reducedMotion ? undefined : { scale: [1, 1.28, 1], opacity: [.3, .6, .3] }} transition={{ duration: 9, repeat: Infinity, ease: 'easeInOut' }} />
         <div className="mx-auto flex min-h-[850px] max-w-7xl items-start px-5 pb-[320px] pt-20 sm:min-h-[720px] sm:px-8 sm:pb-[280px] lg:min-h-[590px] lg:items-center lg:py-24">
           <motion.div initial={reducedMotion ? false : { opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: .7, ease: [0.22, 1, 0.36, 1] }} className="max-w-[640px]">
-            <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#a64c34]">KERVOX Server Marketplace</p>
+            <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#a64c34]">{campaignName}</p>
             <h1 className="mt-5 text-4xl font-semibold leading-[1.07] tracking-[-0.045em] sm:text-5xl lg:text-6xl">
               Server products for the work that matters.
             </h1>

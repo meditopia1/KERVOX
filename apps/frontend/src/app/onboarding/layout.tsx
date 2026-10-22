@@ -2,9 +2,11 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { BrandLogo } from '@/components/brand/brand-logo'
 import { usePathname, useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/auth-context'
 import { supabase } from '@/lib/supabase'
+import { Settings2 } from 'lucide-react'
 
 export default function OnboardingLayout({
   children,
@@ -107,9 +109,10 @@ export default function OnboardingLayout({
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="premium-workspace min-h-screen bg-gray-50">
       {/* Sidebar */}
       <aside
+        data-workspace-sidebar
         className={`
           fixed top-0 left-0 z-40 h-screen transition-all duration-300 ease-in-out
           bg-white border-r border-gray-200
@@ -120,18 +123,13 @@ export default function OnboardingLayout({
           {/* Logo */}
           <div className="flex items-center justify-between h-16 px-4 border-b border-gray-200">
             {!sidebarCollapsed && (
-              <Link href="/onboarding" className="flex items-center gap-2">
-                <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-                  <span className="text-white font-bold text-sm">D1</span>
-                </div>
-                <span className="text-lg font-bold text-gray-900">KERVOX</span>
+              <Link href="/onboarding" className="flex items-center gap-2" aria-label="KERVOX onboarding home">
+                <BrandLogo width={144} height={30} />
               </Link>
             )}
             {sidebarCollapsed && (
-              <Link href="/onboarding" className="flex items-center justify-center w-full">
-                <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-                  <span className="text-white font-bold text-sm">D1</span>
-                </div>
+              <Link href="/onboarding" className="flex items-center justify-center w-full" aria-label="KERVOX onboarding home">
+                <BrandLogo mark="monogram" width={28} height={28} decorative />
               </Link>
             )}
             <button
@@ -145,7 +143,7 @@ export default function OnboardingLayout({
           </div>
 
           {/* Navigation */}
-          <nav className="flex-1 px-3 py-4 space-y-2 overflow-y-auto">
+          <nav data-workspace-nav className="flex-1 px-3 py-4 space-y-2 overflow-y-auto">
             {navigation.map((item) => {
               const isActive = pathname === item.href
               const glowColorRgba = hexToRgba(item.glowColor);
@@ -164,11 +162,13 @@ export default function OnboardingLayout({
                 <Link
                   key={item.name}
                   href={item.href}
+                  aria-current={isActive ? 'page' : undefined}
                   className="block"
                   title={sidebarCollapsed ? item.name : undefined}
                 >
                   <div className="relative">
                     <div
+                      data-workspace-nav-item
                       style={{
                         "--glow-color": glowColorRgba,
                         "--glow-color-via": glowColorVia,
@@ -205,7 +205,11 @@ export default function OnboardingLayout({
           </nav>
 
           {/* Logout button */}
-          <div className="px-3 pb-3 border-t border-gray-200 pt-3">
+          <div data-workspace-footer className="px-3 pb-3 border-t border-gray-200 pt-3">
+            <Link href="/settings" className={`mb-2 flex min-h-10 items-center gap-3 rounded-lg px-3 text-sm font-medium text-[var(--kv-text-muted)] transition-colors hover:bg-[var(--kv-hover,#eee9e1)] hover:text-[var(--kv-ink)] ${sidebarCollapsed ? 'justify-center' : ''}`} title={sidebarCollapsed ? 'Settings' : undefined}>
+              <Settings2 className="h-5 w-5 shrink-0" aria-hidden="true" />
+              {!sidebarCollapsed && <span>Settings</span>}
+            </Link>
             <button 
               onClick={handleLogout}
               className="block w-full"
@@ -241,7 +245,7 @@ export default function OnboardingLayout({
 
       {/* Main content */}
       <div className={`transition-all duration-300 ${sidebarCollapsed ? 'lg:ml-16' : 'lg:ml-64'}`}>
-        <main className="p-6">
+        <main data-workspace-content className="workspace-main min-h-screen p-6">
           {children}
         </main>
       </div>

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
+import { BrandLogo } from '@/components/brand/brand-logo';
 import { useAuth } from '@/contexts/auth-context';
 import { ArrowLeft, ArrowRight, Eye, EyeOff, ShieldCheck, Users } from 'lucide-react';
 
@@ -91,7 +91,7 @@ export default function LoginPage() {
       </div>
       <div className="relative mx-auto flex min-h-screen max-w-[1200px] flex-col px-5 sm:px-8">
         <header className="flex items-center justify-between py-7 sm:py-9">
-          <Link href="/" aria-label="KERVOX home" className="inline-flex items-center"><Image src="/kervox-logo.svg" alt="KERVOX" width={162} height={33} className="h-[33px] w-auto" /></Link>
+          <Link href="/" aria-label="KERVOX home" className="kervox-public-brand inline-flex items-center"><BrandLogo width={162} height={33} decorative /></Link>
           <Link href="/" className="inline-flex items-center gap-2 text-sm font-medium text-[#6d675f] transition hover:text-[#a64c34]">
             <ArrowLeft className="h-4 w-4" aria-hidden="true" /> Back to home
           </Link>

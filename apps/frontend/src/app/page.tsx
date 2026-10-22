@@ -1,4 +1,6 @@
-﻿export default function Home() {
+import { BrandLogo } from '@/components/brand/brand-logo';
+
+export default function Home() {
   return (
     <main className="min-h-screen bg-[#f7f5f0] text-[#2b2926]">
       <section className="premium-hero relative isolate flex min-h-screen flex-col overflow-hidden bg-[#f5f1e9]">
@@ -8,7 +10,7 @@
         </div>
 
         <header className="relative z-10 flex items-center justify-between px-6 py-6 sm:px-10 lg:px-12">
-          <img src="/kervox-logo.svg" alt="KERVOX" width="162" height="33" className="h-[33px] w-auto" />
+          <span className="kervox-public-brand inline-flex items-center"><BrandLogo width={162} height={33} /></span>
           <a href="/login" className="rounded-full bg-[#a64c34] px-6 py-3 text-sm font-semibold text-white transition hover:bg-[#873b29] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#a64c34]">Log-in</a>
         </header>
 

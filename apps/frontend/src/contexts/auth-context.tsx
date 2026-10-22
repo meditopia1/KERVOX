@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
+import { getAuthHeaders } from '@/lib/auth-fetch';
 
 interface User {
   id: string;
@@ -34,11 +35,6 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 const ACCESS_TOKEN_KEY = 'auth_access_token';
 const REFRESH_TOKEN_KEY = 'auth_refresh_token';
-
-function getStoredAccessToken() {
-  if (typeof window === 'undefined') return null;
-  return localStorage.getItem(ACCESS_TOKEN_KEY);
-}
 
 function persistAuthSession(session: { access_token: string; refresh_token?: string | null }) {
   if (typeof window === 'undefined') return;
@@ -109,22 +105,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
       }
 
-      let accessToken = getStoredAccessToken();
-
-      if (!accessToken) {
-        const {
-          data: { session },
-          error: sessionError,
-        } = await supabase.auth.getSession();
-
-        if (!sessionError && session?.access_token) {
-          accessToken = session.access_token;
-          persistAuthSession({
-            access_token: session.access_token,
-            refresh_token: session.refresh_token,
-          });
-        }
-      }
+      const authHeaders = await getAuthHeaders();
+      const accessToken = authHeaders.get('Authorization')?.replace(/^Bearer\s+/i, '') || null;
 
       if (!accessToken) {
         console.log('No active session');
@@ -216,6 +198,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       persistAuthSession(data.session);
+      if (data.session.refresh_token) {
+        const { error: sessionError } = await supabase.auth.setSession({
+          access_token: data.session.access_token,
+          refresh_token: data.session.refresh_token,
+        });
+        if (sessionError) console.warn('Could not activate browser session refresh:', sessionError.message);
+      }
       await loadUser();
       const authenticatedUser = data.user;
 

@@ -52,4 +52,28 @@ describe('marketing dashboard', () => {
     expect(await screen.findByText('Alex Park')).toBeTruthy();
     expect(authFetch).toHaveBeenCalledTimes(2);
   });
+
+  it('waits for authentication before requesting the overview', async () => {
+    (useAuth as jest.Mock).mockReturnValue({ user: null, loading: true });
+    (authFetch as jest.Mock).mockResolvedValue({ ok: true, json: async () => ({ stats: liveStats }) });
+
+    const view = render(<MarketingDashboardPage />);
+    expect(authFetch).not.toHaveBeenCalled();
+
+    (useAuth as jest.Mock).mockReturnValue({ user: { firstName: 'Morgan' }, loading: false });
+    view.rerender(<MarketingDashboardPage />);
+
+    expect(await screen.findByText('Alex Park')).toBeTruthy();
+    expect(authFetch).toHaveBeenCalledTimes(1);
+  });
+
+  it('asks for sign-in when a session can no longer be refreshed', async () => {
+    (authFetch as jest.Mock).mockResolvedValue({ status: 401, ok: false, json: async () => ({ code: 'INVALID_TOKEN' }) });
+
+    render(<MarketingDashboardPage />);
+
+    expect(await screen.findByText('Your session has expired. Please sign in again.')).toBeTruthy();
+    expect(screen.getByRole('link', { name: 'Sign in' }).getAttribute('href')).toBe('/login');
+    expect(screen.queryByRole('button', { name: 'Try again' })).toBeNull();
+  });
 });

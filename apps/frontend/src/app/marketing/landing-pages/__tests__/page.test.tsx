@@ -50,6 +50,10 @@ describe('marketing landing pages workspace', () => {
     expect(screen.getByText('Connected operations')).toBeTruthy();
     expect(screen.getByText('/lp/server-marketplace')).toBeTruthy();
     expect(screen.getByRole('button', { name: 'New Landing Page' })).toBeTruthy();
+    expect((screen.getByRole('button', { name: 'New Funnel' }) as HTMLButtonElement).disabled).toBe(true);
+    expect(screen.getByText('Summer 2026 Infrastructure Funnel')).toBeTruthy();
+    expect(screen.getByText('Paused')).toBeTruthy();
+    expect(screen.getAllByRole('button', { name: 'Open funnel' }).every((button) => (button as HTMLButtonElement).disabled)).toBe(true);
     expect(screen.getByText('Marketplace')).toBeTruthy();
     expect(screen.queryByText('Original campaign')).toBeNull();
     expect(authFetch).toHaveBeenCalledWith('/api/marketing/landing-pages');

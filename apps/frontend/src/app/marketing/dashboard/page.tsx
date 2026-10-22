@@ -43,18 +43,26 @@ const metricStyle = {
 };
 
 export default function MarketingDashboardPage() {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [stats, setStats] = useState<MarketingStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [requiresSignIn, setRequiresSignIn] = useState(false);
 
   const loadStats = useCallback(async () => {
     setLoading(true);
     setError('');
+    setRequiresSignIn(false);
+    let sessionExpired = false;
 
     try {
       const response = await authFetch('/api/marketing/dashboard');
       const data = await response.json();
+
+      if (response.status === 401) {
+        sessionExpired = true;
+        throw new Error('Your session has expired. Please sign in again.');
+      }
 
       if (!response.ok || !data.stats) {
         throw new Error(data?.error || 'Could not load your marketing overview.');
@@ -63,15 +71,24 @@ export default function MarketingDashboardPage() {
       setStats(data.stats as MarketingStats);
     } catch (cause) {
       console.error('Failed to fetch marketing dashboard stats:', cause);
-      setError('Could not load your marketing overview. Please try again.');
+      setRequiresSignIn(sessionExpired);
+      setError(sessionExpired ? 'Your session has expired. Please sign in again.' : 'Could not load your marketing overview. Please try again.');
     } finally {
       setLoading(false);
     }
   }, []);
 
   useEffect(() => {
+    if (authLoading) return;
+    if (!user) {
+      setStats(null);
+      setLoading(false);
+      setRequiresSignIn(true);
+      setError('Sign in to view your marketing overview.');
+      return;
+    }
     void loadStats();
-  }, [loadStats]);
+  }, [authLoading, user, loadStats]);
 
   if (loading && !stats) {
     return (
@@ -92,13 +109,17 @@ export default function MarketingDashboardPage() {
           <AlertCircle aria-hidden="true" className="mx-auto h-9 w-9 text-[#a64c34]" />
           <h1 className="mt-4 text-xl font-semibold text-[#2d241e]">Overview unavailable</h1>
           <p className="mt-2 text-sm text-[#71665c]">{error}</p>
-          <button
-            type="button"
-            onClick={() => void loadStats()}
-            className="mt-5 rounded-lg bg-[#a64c34] px-4 py-2 text-sm font-semibold text-white hover:bg-[#873b29] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#a64c34]"
-          >
-            Try again
-          </button>
+          {user && !requiresSignIn ? (
+            <button
+              type="button"
+              onClick={() => void loadStats()}
+              className="mt-5 rounded-lg bg-[#a64c34] px-4 py-2 text-sm font-semibold text-white hover:bg-[#873b29] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#a64c34]"
+            >
+              Try again
+            </button>
+          ) : (
+            <Link href="/login" className="mt-5 inline-flex rounded-lg bg-[#a64c34] px-4 py-2 text-sm font-semibold text-white hover:bg-[#873b29]">Sign in</Link>
+          )}
         </div>
       </SidebarLayout>
     );

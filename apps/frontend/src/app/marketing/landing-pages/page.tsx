@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { LandingPageEditor } from '@/components/marketing/landing-page-editor';
 import { MarketplaceRequestsPanel } from '@/components/marketing/MarketplaceRequestsPanel';
 import { authFetch } from '@/lib/auth-fetch';
+import { ENABLE_SUMMER_2026_FUNNEL } from '@/lib/features';
 import {
   brandedLandingPageDescription,
   brandedLandingPageName,
@@ -23,6 +24,11 @@ const filters: { value: PageFilter; label: string }[] = [
 ];
 const marketplaceName = 'KERVOX Server Marketplace';
 const marketplaceDescription = 'Browse server products and connect with buyers or sellers.';
+const summerFunnel = {
+  name: 'Summer 2026',
+  slug: 'summer-2026',
+  description: 'A focused KERVOX infrastructure campaign for server products, enquiries, and equipment listings.',
+};
 const publicSlugFor = (page: MarketingLandingPage) =>
   isOriginalMarketingLandingContent(page.content) && page.slug === 'summer-health-2026'
     ? 'server-marketplace'
@@ -115,6 +121,11 @@ export default function LandingPagesPage() {
     window.location.assign(`/lp/${encodeURIComponent(publicSlugFor(originalLandingPage))}`);
   }
 
+  function openSummerFunnel() {
+    if (!ENABLE_SUMMER_2026_FUNNEL) return;
+    window.location.assign(`/lp/${summerFunnel.slug}`);
+  }
+
   const measuredPages = landingPages.filter((page) => page.stats != null);
   const totalVisits = landingPages.reduce((sum, page) => sum + (page.stats?.visits || 0), 0);
   const totalLeads = landingPages.reduce((sum, page) => sum + (page.stats?.leads || 0), 0);
@@ -134,7 +145,7 @@ export default function LandingPagesPage() {
             <p className="mt-2 text-sm leading-6 text-[#6d675f]">Keep every campaign page organized, published, and ready to share.</p>
           </div>
           <div className="flex flex-wrap gap-2">
-            <Button variant="outline" disabled title="The funnel builder is not available yet"><LayoutTemplate className="mr-2 h-4 w-4" aria-hidden="true" />New Funnel</Button>
+            <Button variant="outline" onClick={openSummerFunnel} disabled={!ENABLE_SUMMER_2026_FUNNEL} title="Funnel creation is temporarily paused"><LayoutTemplate className="mr-2 h-4 w-4" aria-hidden="true" />New Funnel</Button>
             <Button variant="outline" onClick={() => openEditor('create')}><Plus className="mr-2 h-4 w-4" aria-hidden="true" />Create custom page</Button>
             <Button onClick={openOriginalLandingPage} title="Open the original landing page" disabled={loading}><ArrowUpRight className="mr-2 h-4 w-4" aria-hidden="true" />New Landing Page</Button>
           </div>
@@ -164,6 +175,32 @@ export default function LandingPagesPage() {
               <SummaryMetric label="Total visits" value={hasAnalytics ? totalVisits.toLocaleString() : '—'} note={hasAnalytics ? 'Recorded visits' : 'Analytics not connected'} icon={Eye} />
               <SummaryMetric label="Total leads" value={hasAnalytics ? totalLeads.toLocaleString() : '—'} note={hasAnalytics ? 'Recorded leads' : 'Analytics not connected'} icon={Users} />
               <SummaryMetric label="Avg. conversion" value={hasAnalytics ? `${avgConversion.toFixed(1)}%` : '—'} note={hasAnalytics ? 'Average reported rate' : 'Analytics not connected'} icon={TrendingUp} />
+            </section>
+
+            <section aria-labelledby="funnels-heading" className="overflow-hidden rounded-xl border border-[#e6e0d7] bg-[#fffefa] shadow-[0_10px_32px_rgba(49,37,28,0.035)]">
+              <div className="flex flex-col gap-4 border-b border-[#eae3da] px-5 py-5 sm:px-6 lg:flex-row lg:items-center lg:justify-between">
+                <div>
+                  <p className="kervox-eyebrow">Campaign funnel</p>
+                  <h2 id="funnels-heading" className="mt-1 text-lg font-semibold text-[#2b2926]">Campaign funnel</h2>
+                  <p className="mt-1 text-sm text-[#81796e]">{ENABLE_SUMMER_2026_FUNNEL ? 'A dedicated route for the Summer 2026 infrastructure campaign.' : 'The Summer 2026 campaign is temporarily paused. Its setup remains saved for later.'}</p>
+                </div>
+                <Button variant="outline" onClick={openSummerFunnel} disabled={!ENABLE_SUMMER_2026_FUNNEL}><ArrowUpRight className="mr-2 h-4 w-4" aria-hidden="true" />Open funnel</Button>
+              </div>
+              <article className="flex flex-col gap-5 px-5 py-5 transition-colors hover:bg-[#fcfaf6] sm:px-6 xl:flex-row xl:items-center xl:justify-between">
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-[#ead9cb] bg-[#faf0e9] text-[#a64c34]"><LayoutTemplate className="h-5 w-5" aria-hidden="true" /></span>
+                    <h3 className="text-base font-semibold text-[#2b2926] sm:text-lg">{summerFunnel.name} Infrastructure Funnel</h3>
+                    <span className="rounded-full border border-[#e2cdbd] bg-[#f7efe7] px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.06em] text-[#873b29]">{ENABLE_SUMMER_2026_FUNNEL ? 'Published' : 'Paused'}</span>
+                  </div>
+                  <p className="mt-3 break-all text-xs font-medium text-[#a64c34]">/lp/{summerFunnel.slug}</p>
+                  <p className="mt-2 max-w-2xl text-sm leading-6 text-[#6d675f]">{summerFunnel.description}</p>
+                </div>
+                <div className="flex shrink-0 flex-wrap gap-2">
+                  <Button size="sm" variant="outline" disabled={!ENABLE_SUMMER_2026_FUNNEL} onClick={() => window.open(`/lp/${summerFunnel.slug}`, '_blank', 'noopener,noreferrer')}><ArrowUpRight className="mr-1.5 h-3.5 w-3.5" aria-hidden="true" />View</Button>
+                  <Button size="sm" variant="outline" disabled={!ENABLE_SUMMER_2026_FUNNEL} onClick={openSummerFunnel}><Pencil className="mr-1.5 h-3.5 w-3.5" aria-hidden="true" />Open funnel</Button>
+                </div>
+              </article>
             </section>
 
             <section aria-labelledby="pages-heading" className="overflow-hidden rounded-xl border border-[#e6e0d7] bg-[#fffefa] shadow-[0_10px_32px_rgba(49,37,28,0.035)]">

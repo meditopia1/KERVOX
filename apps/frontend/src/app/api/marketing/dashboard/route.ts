@@ -6,48 +6,34 @@ export const dynamic = 'force-dynamic'
 export async function GET(request: NextRequest) {
   try {
     const supabaseAdmin = createServerSupabaseClient()
-    // Fetch contacts for lead stats
+    // The overview is derived from contacts only. Avoid reading unrelated
+    // application and member records (and their sensitive columns).
     const { data: contacts, error: contactsError } = await supabaseAdmin
       .from('contacts')
-      .select('*')
+      .select('first_name,last_name,email,source,is_lead,is_applicant,is_member,last_contacted_at,lead_score,created_at')
 
     if (contactsError) throw contactsError
 
-    // Fetch applications for conversion stats
-    const { data: applications, error: appsError } = await supabaseAdmin
-      .from('applications')
-      .select('*')
-
-    if (appsError) throw appsError
-
-    // Fetch members for conversion stats
-    const { data: members, error: membersError } = await supabaseAdmin
-      .from('members')
-      .select('*')
-
-    if (membersError) throw membersError
-
     // Calculate stats
-    const totalLeads = contacts.length
-    const totalApplications = applications.length
-    const totalMembers = members.length
+    const rows = contacts || []
+    const totalLeads = rows.length
     
     // Lead pipeline
-    const newLeads = contacts.filter(c => c.is_lead && !c.is_applicant).length
-    const contacted = contacts.filter(c => c.last_contacted_at).length
-    const qualified = contacts.filter(c => c.is_applicant).length
-    const converted = contacts.filter(c => c.is_member).length
+    const newLeads = rows.filter(c => c.is_lead && !c.is_applicant).length
+    const contacted = rows.filter(c => c.last_contacted_at).length
+    const qualified = rows.filter(c => c.is_applicant).length
+    const converted = rows.filter(c => c.is_member).length
 
     // Lifecycle stages (based on lead score)
-    const hotLeads = contacts.filter(c => c.is_lead && (c.lead_score || 0) >= 80).length
-    const warmLeads = contacts.filter(c => c.is_lead && (c.lead_score || 0) >= 60 && (c.lead_score || 0) < 80).length
-    const coldLeads = contacts.filter(c => c.is_lead && (c.lead_score || 0) < 60).length
+    const hotLeads = rows.filter(c => c.is_lead && (c.lead_score || 0) >= 80).length
+    const warmLeads = rows.filter(c => c.is_lead && (c.lead_score || 0) >= 60 && (c.lead_score || 0) < 80).length
+    const coldLeads = rows.filter(c => c.is_lead && (c.lead_score || 0) < 60).length
 
     // Conversion rate
     const conversionRate = totalLeads > 0 ? ((converted / totalLeads) * 100).toFixed(1) : '0.0'
 
     // Recent leads (last 5)
-    const recentLeads = contacts
+    const recentLeads = [...rows]
       .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
       .slice(0, 5)
       .map(contact => ({
@@ -59,7 +45,7 @@ export async function GET(request: NextRequest) {
       }))
 
     // Lead sources
-    const sources = contacts.reduce((acc: any, contact) => {
+    const sources = rows.reduce((acc: any, contact) => {
       const source = contact.source || 'unknown'
       if (!acc[source]) {
         acc[source] = { count: 0, converted: 0 }

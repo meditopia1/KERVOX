@@ -3,7 +3,8 @@
 import { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
-import Image from 'next/image';
+import { BrandLogo } from '@/components/brand/brand-logo';
+import { Settings2 } from 'lucide-react';
 
 interface NavItem {
   name: string;
@@ -129,6 +130,12 @@ export default function MemberLayout({
         </svg>
       ),
     },
+    {
+      name: 'Settings',
+      href: '/member/settings',
+      glowColor: '#a64c34',
+      icon: <Settings2 className="h-5 w-5" aria-hidden="true" />,
+    },
   ];
 
   if (loading) {
@@ -166,7 +173,7 @@ export default function MemberLayout({
           {/* Logo */}
           <div className="flex items-center justify-between h-16 px-6 border-b border-[#dce8f7]">
             <Link href="/member/dashboard" aria-label="KERVOX member dashboard" className="inline-flex items-center">
-              <Image src="/kervox-logo.svg" alt="KERVOX" width={148} height={30} className="h-[30px] w-auto" />
+              <BrandLogo width={148} height={30} />
             </Link>
             <button
               type="button"
@@ -239,7 +246,7 @@ export default function MemberLayout({
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
             </svg>
           </button>
-          <Image src="/kervox-logo.svg" alt="KERVOX" width={128} height={26} className="h-[26px] w-auto" />
+          <BrandLogo width={128} height={26} />
           <div className="w-6" /> {/* Spacer */}
         </div>
 

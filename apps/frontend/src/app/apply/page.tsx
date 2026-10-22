@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useSearchParams } from 'next/navigation'
-import Image from 'next/image'
+import { BrandLogo } from '@/components/brand/brand-logo'
 import Step1Personal from '@/components/apply-steps/Step1Personal'
 import Step2Documents from '@/components/apply-steps/Step2Documents'
 import Step5Dependents from '@/components/apply-steps/Step5Dependents'
@@ -65,7 +65,7 @@ export default function ApplyPage() {
       <div data-kervox-application-header className="border-b border-[#573a30] bg-[#2b2926] shadow-[0_16px_42px_rgba(49,37,28,0.16)]">
         <div className="max-w-4xl mx-auto px-4 py-6">
           <div className="mb-3 flex items-center gap-3">
-            <span aria-hidden="true" className="flex h-12 w-12 items-center justify-center rounded-lg border border-white/20 bg-[#fffefa] shadow-[0_8px_22px_rgba(0,0,0,.17)]"><Image src="/kervox-k.svg" alt="" width={36} height={36} className="h-9 w-9 object-contain" /></span>
+            <span aria-hidden="true" className="kervox-apply-mark flex h-12 w-12 items-center justify-center rounded-lg border border-white/20 bg-[#fffefa] shadow-[0_8px_22px_rgba(0,0,0,.17)]"><BrandLogo mark="monogram" width={36} height={36} decorative /></span>
             <h1 className="text-2xl font-bold text-white sm:text-3xl">KERVOX Application</h1>
           </div>
           {(source === 'broker' || source === 'call-centre') && (
