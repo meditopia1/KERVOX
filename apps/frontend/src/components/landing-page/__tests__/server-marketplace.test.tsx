@@ -61,4 +61,27 @@ describe('server marketplace landing page', () => {
       global.fetch = originalFetch;
     }
   });
+
+  it('saves a KER01 buyer enquiry with the selected product and contact number', async () => {
+    const originalFetch = global.fetch;
+    const mockFetch = jest.fn().mockResolvedValue({ ok: true, json: async () => ({ id: 'buyer-reference' }) });
+    global.fetch = mockFetch as typeof fetch;
+    try {
+      render(<OriginalMarketingLandingPage content={{ template: 'ker01' }} campaignName="KER01" variant="funnel" />);
+      expect(screen.getByRole('heading', { name: 'Build the infrastructure your business depends on.' })).toBeTruthy();
+      expect(screen.getByRole('heading', { name: 'A clear path from enquiry to quote.' })).toBeTruthy();
+      fireEvent.click(screen.getByRole('button', { name: 'Next product' }));
+      await waitFor(() => expect(screen.getByRole('complementary', { name: 'Product inquiry' }).textContent).toContain('Product 2'));
+      fireEvent.click(screen.getByRole('button', { name: /Request this product/ }));
+      fireEvent.change(screen.getByRole('textbox', { name: 'Your name' }), { target: { value: 'Alex Rivera' } });
+      fireEvent.change(screen.getByRole('textbox', { name: 'Work email' }), { target: { value: 'alex@example.com' } });
+      fireEvent.change(screen.getByRole('textbox', { name: 'Phone (optional)' }), { target: { value: '+27 11 555 0101' } });
+      fireEvent.click(screen.getByRole('button', { name: /Submit inquiry/ }));
+      await waitFor(() => expect(mockFetch).toHaveBeenCalledTimes(1));
+      expect(JSON.parse(mockFetch.mock.calls[0][1].body)).toMatchObject({ requestType: 'buy', productName: 'Product 2', details: 'Phone: +27 11 555 0101' });
+      expect(await screen.findByText(/buyer-reference/)).toBeTruthy();
+    } finally {
+      global.fetch = originalFetch;
+    }
+  });
 });

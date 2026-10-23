@@ -1,2 +1,2 @@
-/** Set to true when the Summer 2026 campaign is ready to publish again. */
-export const ENABLE_SUMMER_2026_FUNNEL: boolean = false;
+/** KER01 is available as the public product enquiry funnel. */
+export const ENABLE_KER01_FUNNEL: boolean = true;

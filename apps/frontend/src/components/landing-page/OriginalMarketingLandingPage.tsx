@@ -18,6 +18,7 @@ import {
   Plus,
   Server,
   ShieldCheck,
+  ClipboardCheck,
 } from 'lucide-react';
 import { MarketplaceRequestDialog } from './MarketplaceRequestDialog';
 
@@ -139,10 +140,13 @@ function ProductInquiry({ product, onBuy, onSell }: { product: Product; onBuy: (
 
 export function OriginalMarketingLandingPage({
   campaignName = 'KERVOX Server Marketplace',
+  variant = 'marketplace',
 }: {
   content: unknown;
   campaignName?: string;
+  variant?: 'marketplace' | 'funnel';
 }) {
+  const isFunnel = variant === 'funnel';
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [requestMode, setRequestMode] = useState<'buy' | 'sell' | null>(null);
   const [requestProduct, setRequestProduct] = useState<{ name: string; category: string; condition: 'new' | 'refurbished'; quantity: number }>({ name: products[0].name, category: products[0].category, condition: 'new', quantity: 1 });
@@ -163,7 +167,7 @@ export function OriginalMarketingLandingPage({
           <Link href="/" aria-label="KERVOX home" className="inline-flex items-center">
             <span className="kervox-public-brand inline-flex items-center"><BrandLogo width={145} height={30} /></span>
           </Link>
-          <nav aria-label="Marketplace navigation" className="flex items-center gap-3 sm:gap-6">
+          <nav aria-label="KERVOX navigation" className="flex items-center gap-3 sm:gap-6">
             <a href="#products" className="hidden text-sm font-medium text-[#554d45] hover:text-[#873b29] sm:inline">Explore products</a>
             <button type="button" onClick={openSell} className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-[#d8cec2] bg-[#fffefa] px-4 text-sm font-semibold text-[#39352f] transition-colors hover:bg-[#f4eee6] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#a64c34]">
               Sell a product <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
@@ -185,12 +189,12 @@ export function OriginalMarketingLandingPage({
           <motion.div initial={reducedMotion ? false : { opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: .7, ease: [0.22, 1, 0.36, 1] }} className="max-w-[640px]">
             <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#a64c34]">{campaignName}</p>
             <h1 className="mt-5 text-4xl font-semibold leading-[1.07] tracking-[-0.045em] sm:text-5xl lg:text-6xl">
-              Server products for the work that matters.
+              {isFunnel ? 'Build the infrastructure your business depends on.' : 'Server products for the work that matters.'}
             </h1>
-            <p className="mt-6 max-w-xl text-lg leading-8 text-[#5e5750]">Explore server hardware, network equipment, and infrastructure products in one considered marketplace.</p>
+            <p className="mt-6 max-w-xl text-lg leading-8 text-[#5e5750]">{isFunnel ? 'Explore server hardware, network equipment, and infrastructure bundles. Tell us what you need and receive a tailored quote.' : 'Explore server hardware, network equipment, and infrastructure products in one considered marketplace.'}</p>
             <div className="mt-8 flex flex-wrap gap-3">
               <a href="#products" className="inline-flex min-h-12 items-center gap-2 rounded-lg bg-[#a64c34] px-5 text-sm font-semibold text-white shadow-[0_8px_20px_rgba(166,76,52,0.16)] transition-colors hover:bg-[#873b29] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#a64c34]">
-                Explore products <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                {isFunnel ? 'Request a quote' : 'Explore products'} <ArrowRight className="h-4 w-4" aria-hidden="true" />
               </a>
               <button type="button" onClick={openSell} className="inline-flex min-h-12 items-center gap-2 rounded-lg border border-[#d8cec2] bg-[#fffefa]/90 px-5 text-sm font-semibold text-[#39352f] transition-colors hover:bg-[#fffefa] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#a64c34]">
                 Sell equipment <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
@@ -208,7 +212,7 @@ export function OriginalMarketingLandingPage({
           <div className="max-w-2xl">
             <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#a64c34]">The collection</p>
             <h2 id="products-heading" className="mt-3 text-3xl font-semibold tracking-[-0.04em] sm:text-4xl">Explore our server products.</h2>
-            <p className="mt-4 text-base leading-7 text-[#6d675f]">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Select a product to review its details and enquire.</p>
+            <p className="mt-4 text-base leading-7 text-[#6d675f]">Select a product to review its category and current placeholder details, then send us your requirements.</p>
           </div>
 
           <div className="mt-9 flex items-center justify-between border-t border-[#dfd3c5] pt-4 text-[11px] font-bold uppercase tracking-[0.18em] text-[#a64c34]">
@@ -253,6 +257,37 @@ export function OriginalMarketingLandingPage({
         </div>
       </section>
 
+      {isFunnel && (
+        <section className="border-y border-[#e6e0d7] bg-[#fffefa] px-5 py-16 sm:px-8 lg:py-20" aria-labelledby="process-heading">
+          <div className="mx-auto max-w-7xl">
+            <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#a64c34]">What happens next</p>
+            <h2 id="process-heading" className="mt-3 text-3xl font-semibold tracking-[-0.04em] sm:text-4xl">A clear path from enquiry to quote.</h2>
+            <div className="mt-9 grid gap-4 md:grid-cols-3">
+              {[
+                { icon: Mail, title: 'Submit an enquiry', text: 'Choose a product and tell us about your requirements.' },
+                { icon: ClipboardCheck, title: 'We review availability', text: 'The team reviews your request and confirms the relevant details.' },
+                { icon: ShieldCheck, title: 'Receive a tailored quote', text: 'We follow up with an offer based on the equipment and quantity you need.' },
+              ].map(({ icon: Icon, title, text }, index) => (
+                <article key={title} className="rounded-xl border border-[#e6e0d7] bg-[#f9f6f0] p-6">
+                  <div className="flex items-center justify-between text-[#a64c34]"><Icon className="h-6 w-6" aria-hidden="true" /><span className="text-xs font-bold tracking-[0.16em]">0{index + 1}</span></div>
+                  <h3 className="mt-5 text-lg font-semibold">{title}</h3>
+                  <p className="mt-2 text-sm leading-6 text-[#6d675f]">{text}</p>
+                </article>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {isFunnel && (
+        <section className="bg-[#f7f5f0] px-5 py-16 sm:px-8 lg:py-20" aria-labelledby="sell-heading">
+          <div className="mx-auto flex max-w-7xl flex-col gap-6 rounded-2xl border border-[#dfd3c5] bg-[#fffefa] p-8 shadow-[0_16px_40px_rgba(49,37,28,.06)] md:flex-row md:items-center md:justify-between md:p-12">
+            <div><p className="text-xs font-bold uppercase tracking-[0.18em] text-[#a64c34]">For sellers</p><h2 id="sell-heading" className="mt-3 text-3xl font-semibold tracking-[-0.04em]">Have server equipment to sell?</h2><p className="mt-3 max-w-xl text-sm leading-7 text-[#6d675f]">Tell us about your equipment. Your listing request will be saved for review.</p></div>
+            <button type="button" onClick={openSell} className="inline-flex min-h-12 shrink-0 items-center justify-center gap-2 rounded-lg bg-[#a64c34] px-6 text-sm font-semibold text-white transition-colors hover:bg-[#873b29] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#a64c34]">List your equipment <ArrowUpRight className="h-4 w-4" aria-hidden="true" /></button>
+          </div>
+        </section>
+      )}
+
       <section className="border-y border-[#e6e0d7] bg-[#fffefa] px-5 py-16 sm:px-8" aria-labelledby="marketplace-heading">
         <div className="mx-auto grid max-w-7xl gap-8 md:grid-cols-[.85fr_1.15fr] md:items-center">
           <div>
@@ -263,16 +298,25 @@ export function OriginalMarketingLandingPage({
             <div className="rounded-xl border border-[#e6e0d7] bg-[#f9f6f0] p-5">
               <ShieldCheck className="h-6 w-6 text-[#a64c34]" aria-hidden="true" />
               <h3 className="mt-4 text-base font-semibold">For buyers</h3>
-              <p className="mt-2 text-sm leading-6 text-[#6d675f]">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer vitae sem vel erat.</p>
+              <p className="mt-2 text-sm leading-6 text-[#6d675f]">Send a product enquiry and discuss availability and pricing with the team.</p>
             </div>
             <div className="rounded-xl border border-[#e6e0d7] bg-[#f9f6f0] p-5">
               <Mail className="h-6 w-6 text-[#a64c34]" aria-hidden="true" />
               <h3 className="mt-4 text-base font-semibold">For sellers</h3>
-              <p className="mt-2 text-sm leading-6 text-[#6d675f]">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus id nibh at augue.</p>
+              <p className="mt-2 text-sm leading-6 text-[#6d675f]">Share the equipment you have available so the team can review it for listing.</p>
             </div>
           </div>
         </div>
       </section>
+
+      {isFunnel && (
+        <section className="bg-[#f7f5f0] px-5 pb-16 sm:px-8 lg:pb-20" aria-labelledby="final-cta-heading">
+          <div className="mx-auto flex max-w-7xl flex-col gap-6 rounded-2xl bg-[#2b2926] px-8 py-10 text-[#fffefa] md:flex-row md:items-center md:justify-between md:px-12">
+            <div><p className="text-xs font-bold uppercase tracking-[0.18em] text-[#d9aa8e]">Your next step</p><h2 id="final-cta-heading" className="mt-3 text-2xl font-semibold tracking-tight sm:text-3xl">Find the right equipment for your work.</h2><p className="mt-2 text-sm leading-6 text-[#ded5ca]">Browse the collection and send a product enquiry when you are ready.</p></div>
+            <a href="#products" className="inline-flex min-h-12 shrink-0 items-center justify-center gap-2 rounded-lg bg-[#a64c34] px-6 text-sm font-semibold text-white transition-colors hover:bg-[#bb634a] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white">Request a quote <ArrowRight className="h-4 w-4" aria-hidden="true" /></a>
+          </div>
+        </section>
+      )}
 
       <footer className="bg-[#2b2926] px-5 py-10 text-[#e4dbd1] sm:px-8">
         <div className="mx-auto flex max-w-7xl flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">

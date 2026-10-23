@@ -27,6 +27,8 @@ export function MarketplaceRequestDialog({ mode, product, onClose }: {
     event.preventDefault();
     if (!mode || busy) return;
     const form = new FormData(event.currentTarget);
+    const phone = String(form.get('phone') || '').trim();
+    const message = String(form.get('details') || '').trim();
     const payload = {
       requestType: mode,
       fullName: String(form.get('fullName') || ''),
@@ -36,7 +38,7 @@ export function MarketplaceRequestDialog({ mode, product, onClose }: {
       category: mode === 'buy' ? product.category : String(form.get('category') || ''),
       condition: mode === 'buy' ? product.condition : String(form.get('condition') || ''),
       quantity: mode === 'buy' ? product.quantity : Number(form.get('quantity')),
-      details: String(form.get('details') || ''),
+      details: [phone ? `Phone: ${phone}` : '', message].filter(Boolean).join('\n'),
       website: String(form.get('website') || ''),
     };
     setBusy(true);
@@ -89,6 +91,7 @@ export function MarketplaceRequestDialog({ mode, product, onClose }: {
                         <Field label="Work email" name="email" type="email" required autoComplete="email" />
                       </div>
                       <Field label="Company (optional)" name="company" autoComplete="organization" />
+                      {mode === 'buy' && <Field label="Phone (optional)" name="phone" type="tel" autoComplete="tel" maxLength={40} />}
                       {mode === 'buy' ? (
                         <div className="rounded-xl border border-[#e7d9cd] bg-[#f8f3ed] px-4 py-3 text-sm text-[#524940]">
                           <span className="font-semibold">{product.name}</span> · {product.category} · {product.condition} · {product.quantity} {product.quantity === 1 ? 'unit' : 'units'}
@@ -104,7 +107,7 @@ export function MarketplaceRequestDialog({ mode, product, onClose }: {
                         </div>
                       )}
                       <label className="block text-sm font-semibold text-[#39352f]">Details (optional)
-                        <textarea name="details" maxLength={2000} rows={3} placeholder={mode === 'buy' ? 'Tell us about your requirements or timeline' : 'Specs, age, location, or other useful details'} className="mt-2 w-full rounded-lg border border-[#d9cec2] bg-white px-3 py-3 text-sm font-normal placeholder:text-[#9c9186] focus:border-[#a64c34] focus:outline-none focus:ring-2 focus:ring-[#a64c34]/20" />
+                        <textarea name="details" maxLength={1800} rows={3} placeholder={mode === 'buy' ? 'Tell us about your requirements or timeline' : 'Specs, age, location, or other useful details'} className="mt-2 w-full rounded-lg border border-[#d9cec2] bg-white px-3 py-3 text-sm font-normal placeholder:text-[#9c9186] focus:border-[#a64c34] focus:outline-none focus:ring-2 focus:ring-[#a64c34]/20" />
                       </label>
                       <div className="absolute -left-[10000px]" aria-hidden="true"><label>Website<input name="website" tabIndex={-1} autoComplete="off" /></label></div>
                       {error && <p role="alert" className="rounded-lg border border-[#f1c9bd] bg-[#fff2ed] px-4 py-3 text-sm text-[#9b3b2b]">{error}</p>}

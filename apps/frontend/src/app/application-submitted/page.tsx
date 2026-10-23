@@ -185,7 +185,7 @@ export default function ApplicationSubmittedPage() {
           {/* Action Buttons */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
-              href="/lp/summer-health-2026"
+              href="/ker01"
               onClick={() => {
                 // Ensure scroll to top when navigating
                 if (typeof window !== 'undefined') {
