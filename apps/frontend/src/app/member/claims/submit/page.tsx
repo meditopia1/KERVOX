@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { ArrowLeft, Upload, FileText, CheckCircle } from 'lucide-react';
 import { getAllClaimTypes, getClaimFormConfig, type ClaimFormConfig } from '@/lib/claim-form-config';
 import { uploadClaimDocuments, generateTempClaimNumber } from '@/lib/storage';
+import { InlinePageLoading } from '@/components/layout/page-loading';
 
 export default function MemberClaimSubmissionPage() {
   const router = useRouter();
@@ -173,11 +174,8 @@ export default function MemberClaimSubmissionPage() {
 
   if (!memberData) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading...</p>
-        </div>
+      <div className="p-8">
+        <InlinePageLoading title="Submit a claim" message="Preparing your claim..." />
       </div>
     );
   }

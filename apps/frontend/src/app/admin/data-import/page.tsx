@@ -196,11 +196,11 @@ export default function DataImportPage() {
   const getStatusIcon = (status: ImportFile['status']) => {
     switch(status) {
       case 'analyzing':
-        return <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600" />;
+        return <span className="kv-action-spinner kv-action-spinner--nav text-[var(--kv-accent)]" aria-hidden="true" />;
       case 'ready':
         return <CheckCircle className="w-5 h-5 text-green-600" />;
       case 'importing':
-        return <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-purple-600" />;
+        return <span className="kv-action-spinner kv-action-spinner--nav text-[var(--kv-accent)]" aria-hidden="true" />;
       case 'completed':
         return <CheckCircle className="w-5 h-5 text-green-600" />;
       case 'error':

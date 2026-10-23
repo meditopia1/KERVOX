@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/auth-context';
 import { SidebarLayout } from '@/components/layout/sidebar-layout';
+import { PageLoading } from '@/components/layout/page-loading';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 
@@ -20,7 +21,7 @@ export default function VendorManagementPage() {
     if (!loading && !isAuthenticated) router.push('/login');
   }, [loading, isAuthenticated, router]);
 
-  if (loading || !user) return <div className="min-h-screen flex items-center justify-center"><p>Loading...</p></div>;
+  if (loading || !user) return <PageLoading message="Opening vendor records..." />;
 
   const getRiskBadge = (risk: string) => {
     const styles = { low: 'bg-green-100 text-green-800', medium: 'bg-yellow-100 text-yellow-800', high: 'bg-red-100 text-red-800' };

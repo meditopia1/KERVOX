@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/auth-context';
 import { SidebarLayout } from '@/components/layout/sidebar-layout';
-import { InlinePageLoading } from '@/components/layout/page-loading';
+import { InlinePageLoading, LoadingPanel } from '@/components/layout/page-loading';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -384,10 +384,7 @@ export default function ClaimsHistoryPage() {
           </CardHeader>
           <CardContent>
             {loadingClaims ? (
-              <div className="text-center py-12">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-4"></div>
-                <p className="text-gray-600">Loading claims...</p>
-              </div>
+              <LoadingPanel message="Loading claims..." />
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full">

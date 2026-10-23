@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { PageLoading } from '@/components/layout/page-loading';
 
 export default function RunDebitOrdersPage() {
   const router = useRouter();
@@ -123,11 +124,7 @@ export default function RunDebitOrdersPage() {
   const totals = calculateTotals();
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-      </div>
-    );
+    return <PageLoading message="Preparing the debit order run..." />;
   }
 
   return (

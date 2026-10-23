@@ -36,7 +36,7 @@ const metricStyle = {
   accentColor: '#a64c34',
   glowFrom: 'rgba(166,76,52,.05)',
   glowTo: 'rgba(166,76,52,.11)',
-  iconBackgroundClassName: 'bg-[#f7e9de]',
+  iconBackgroundClassName: 'bg-[var(--kv-accent-surface)]',
 };
 
 export default function MarketingDashboardPage() {
@@ -155,10 +155,10 @@ export default function MarketingDashboardPage() {
         </div>
 
         <section aria-label="Lead overview" className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          <DashboardMetricCard variant="executive" title="Total contacts" value={stats.totalLeads} subtitle="Current workspace records" icon={<Users className="h-5 w-5 text-[#a64c34]" />} {...metricStyle} />
-          <DashboardMetricCard variant="executive" title="New leads" value={stats.pipeline.new} subtitle="Not yet applicants" icon={<UserPlus className="h-5 w-5 text-[#a64c34]" />} {...metricStyle} />
-          <DashboardMetricCard variant="executive" title="Applicants" value={stats.pipeline.qualified} subtitle="Application in progress" icon={<ClipboardList className="h-5 w-5 text-[#a64c34]" />} {...metricStyle} />
-          <DashboardMetricCard variant="executive" title="Converted" value={stats.pipeline.converted} subtitle={`${stats.conversionRate}% of contacts`} icon={<Target className="h-5 w-5 text-[#a64c34]" />} {...metricStyle} />
+          <DashboardMetricCard variant="executive" title="Total contacts" value={stats.totalLeads} subtitle="Current workspace records" icon={<Users className="h-5 w-5 text-[var(--kv-accent-hover)]" />} {...metricStyle} />
+          <DashboardMetricCard variant="executive" title="New leads" value={stats.pipeline.new} subtitle="Not yet applicants" icon={<UserPlus className="h-5 w-5 text-[var(--kv-accent-hover)]" />} {...metricStyle} />
+          <DashboardMetricCard variant="executive" title="Applicants" value={stats.pipeline.qualified} subtitle="Application in progress" icon={<ClipboardList className="h-5 w-5 text-[var(--kv-accent-hover)]" />} {...metricStyle} />
+          <DashboardMetricCard variant="executive" title="Converted" value={stats.pipeline.converted} subtitle={`${stats.conversionRate}% of contacts`} icon={<Target className="h-5 w-5 text-[var(--kv-accent-hover)]" />} {...metricStyle} />
         </section>
 
         <div className="grid gap-5 xl:grid-cols-[1.05fr_.95fr]">
@@ -169,12 +169,12 @@ export default function MarketingDashboardPage() {
             </CardHeader>
             <CardContent className="space-y-2">
               {pipelineRows.map((row) => (
-                <div key={row.label} className="flex items-center justify-between gap-4 rounded-lg border border-[#eee5dc] bg-[#fdfbf8] px-4 py-3">
+                <div key={row.label} className="flex items-center justify-between gap-4 rounded-lg border border-[var(--kv-line)] bg-[var(--kv-surface-alt)] px-4 py-3">
                   <div className="flex items-center gap-3">
                     <span aria-hidden="true" className={`h-2.5 w-2.5 rounded-full ${row.tone}`} />
-                    <span className="text-sm font-medium text-[#453a32]">{row.label}</span>
+                    <span className="text-sm font-medium text-[var(--kv-ink)]">{row.label}</span>
                   </div>
-                  <span className="tabular-nums text-lg font-semibold text-[#2d241e]">{row.value.toLocaleString()}</span>
+                  <span className="tabular-nums text-lg font-semibold text-[var(--kv-ink)]">{row.value.toLocaleString()}</span>
                 </div>
               ))}
             </CardContent>

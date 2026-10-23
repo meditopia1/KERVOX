@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { BrandLogo } from '@/components/brand/brand-logo';
+import { PageLoading } from '@/components/layout/page-loading';
 import { Settings2 } from 'lucide-react';
 
 interface NavItem {
@@ -139,14 +140,7 @@ export default function MemberLayout({
   ];
 
   if (loading) {
-    return (
-      <div className="premium-workspace flex min-h-screen items-center justify-center" role="status" aria-label="Opening member workspace">
-        <div className="flex items-center gap-3 rounded-xl border border-[#e6e0d7] bg-[#fffefa] px-5 py-4 shadow-sm">
-          <div className="h-5 w-5 animate-spin rounded-full border-2 border-[#e6d8ca] border-t-[#a64c34] motion-reduce:animate-none" aria-hidden="true" />
-          <span className="text-sm text-[#6d675f]">Opening your workspace...</span>
-        </div>
-      </div>
-    );
+    return <div className="premium-workspace"><PageLoading message="Opening your member workspace..." /></div>;
   }
 
   return (

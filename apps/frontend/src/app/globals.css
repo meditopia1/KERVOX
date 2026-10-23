@@ -87,33 +87,18 @@
     @apply text-slate-950;
   }
 
-  .dashboard-main :is(.rounded-xl, .rounded-2xl) {
-    border-radius: 0.5rem;
-  }
-
-  .dashboard-main :is(.rounded-xl, .rounded-2xl) {
-    border-color: #dce8f7;
-    background-color: rgb(255 255 255);
-    box-shadow: 0 1px 3px rgba(6, 21, 45, 0.035);
-  }
-
-  .dashboard-main :is(.rounded-xl, .rounded-2xl):hover {
-    border-color: #aac7ef;
-    box-shadow: 0 8px 20px rgba(37, 99, 235, 0.06);
-  }
-
-  .dashboard-main .grid > .relative.overflow-hidden {
+  .dashboard-main .grid > [data-kervox-metric] {
     border-color: #dce8f7;
     background-color: rgb(255 255 255);
     box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
     background-image: none;
   }
 
-  .dashboard-main .grid > .relative.overflow-hidden > div:first-child {
+  .dashboard-main .grid > [data-kervox-metric] > div:first-child {
     opacity: 0.6;
   }
 
-  .dashboard-main .grid > .relative.overflow-hidden > div:nth-child(2) {
+  .dashboard-main .grid > [data-kervox-metric] > div:nth-child(2) {
     top: 0;
     width: 100%;
     height: 3px;
@@ -184,7 +169,7 @@
 .workspace-main .to-purple-400 { --tw-gradient-to: #60a5fa; }
 .workspace-main .from-purple-50 { --tw-gradient-from: #f1f7ff; }
 .kervox-marketing .grid > .relative.overflow-hidden[style],
-.dashboard-main .grid > .relative.overflow-hidden[style] {
+.dashboard-main .grid > [data-kervox-metric][style] {
   --glow-color: #2563eb !important;
   --glow-color-via: rgba(37, 99, 235, 0.05) !important;
   --glow-color-to: rgba(37, 99, 235, 0.12) !important;

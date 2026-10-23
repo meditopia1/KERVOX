@@ -46,12 +46,14 @@ a:hover > .kervox-brand-logo { transform: translateY(-1px); filter: drop-shadow(
   pointer-events: none;
 }
 
-/* Public pages stay light; give the white Black wordmark a restrained dark plate. */
+/* Public pages stay light, so the Black workspace's white wordmark cannot be used here. */
 html[data-kervox-theme="black"] .kervox-public-brand {
-  background: #1b211e;
-  border: 1px solid #35403d;
-  border-radius: 9px;
-  padding: 5px 10px;
+  --kv-wordmark-image: url('/brand/kervox-signature-wordmark.svg');
+}
+
+/* Login pages use the dark Black palette, unlike the light public homepage. */
+html[data-kervox-theme="black"] .premium-login .kervox-public-brand {
+  --kv-wordmark-image: url('/brand/kervox-black-wordmark.svg');
 }
 
 html[data-kervox-theme="black"] .kervox-apply-mark { background: #1b211e; }
@@ -278,13 +280,13 @@ html[data-kervox-theme]:not([data-kervox-theme="claude"]) .premium-workspace [ar
 
 /* Page backgrounds, custom panels, controls, tables, and dialogs. */
 html[data-kervox-theme]:not([data-kervox-theme="claude"]) .premium-workspace [data-workspace-content],
+html[data-kervox-theme]:not([data-kervox-theme="claude"]) .premium-workspace .workspace-main,
 html[data-kervox-theme]:not([data-kervox-theme="claude"]) .premium-workspace .member-workspace-main {
   background: radial-gradient(ellipse 45rem 25rem at 85% -8%, color-mix(in srgb, var(--kv-accent) 11%, transparent), transparent 76%), var(--kv-canvas);
   color: var(--kv-ink);
 }
 
 html[data-kervox-theme]:not([data-kervox-theme="claude"]) .premium-workspace .workspace-main :is([data-kervox-card], [data-kervox-metric], .kervox-panel, .premium-panel),
-html[data-kervox-theme]:not([data-kervox-theme="claude"]) .premium-workspace .dashboard-main :is(.rounded-xl, .rounded-2xl),
 html[data-kervox-theme]:not([data-kervox-theme="claude"]) .premium-workspace .workspace-main :is(div, section, article)[class*="bg-white"][class*="border"] {
   border-color: var(--kv-line);
   background: var(--kv-surface);
@@ -365,6 +367,17 @@ html[data-kervox-theme]:not([data-kervox-theme="claude"]) .premium-workspace .wo
 html[data-kervox-theme]:not([data-kervox-theme="claude"]) .premium-workspace .workspace-main table tbody tr:hover td,
 html[data-kervox-theme]:not([data-kervox-theme="claude"]) .premium-workspace .workspace-main table tbody tr:focus-within td {
   background: var(--kv-hover);
+}
+
+html[data-kervox-theme]:not([data-kervox-theme="claude"]) .premium-workspace .workspace-main table tbody tr[aria-selected="true"] td,
+html[data-kervox-theme]:not([data-kervox-theme="claude"]) .premium-workspace .workspace-main table tbody tr[data-state="selected"] td {
+  background: var(--kv-accent-surface);
+}
+
+html[data-kervox-theme]:not([data-kervox-theme="claude"]) .premium-workspace .workspace-main.kervox-marketing .grid button.text-left.group:hover,
+html[data-kervox-theme]:not([data-kervox-theme="claude"]) .premium-workspace .workspace-main .premium-admin-dashboard :is(.bg-cyan-100, .bg-purple-100) {
+  background: var(--kv-accent-surface);
+  color: var(--kv-ink);
 }
 
 html[data-kervox-theme]:not([data-kervox-theme="claude"]) .premium-workspace [data-kervox-tabs-list],
@@ -514,6 +527,92 @@ html[data-kervox-theme="black"] .premium-workspace .workspace-main :is(.text-gra
 
 html[data-kervox-theme="black"] .premium-workspace .workspace-main :is(.text-black, .text-slate-800, [class*="text-[#2d241e]"]) {
   color: var(--kv-ink);
+}
+
+/* Legacy dark ink and muted text must not remain dark on Black surfaces. */
+html[data-kervox-theme="black"] .premium-workspace .workspace-main :is(
+  .text-gray-950, .text-gray-300, .text-gray-200, .text-slate-400,
+  [class*="text-[#453a32]"], [class*="text-[#70675e]"],
+  [class*="text-[#625d56]"], [class*="text-[#675548]"],
+  [class*="text-[#527065]"], [class*="text-[#5e5750]"],
+  [class*="text-[#5e503e]"], [class*="text-[#9a8d80]"],
+  [class*="text-[#9c9186]"], [class*="text-[#524940]"],
+  [class*="text-[#526457]"], [class*="text-[#615950]"]
+) {
+  color: var(--kv-text-muted);
+}
+
+html[data-kervox-theme="black"] .premium-workspace .workspace-main :is(
+  [class*="text-[#783d2d]"], [class*="text-[#8c7139]"],
+  [class*="text-[#99442f]"], [class*="text-[#8b583d]"],
+  [class*="text-[#923e2c]"], [class*="text-[#9b3b2b]"]
+) {
+  color: var(--kv-accent);
+}
+
+/* Legacy light fills must follow the selected palette; Black otherwise gets pale text on white chips and rows. */
+html[data-kervox-theme]:not([data-kervox-theme="claude"]) .premium-workspace .workspace-main :is(
+  [class~="bg-[#e6e0d7]"], [class~="bg-[#eee7dd]"], [class~="bg-[#eee8dc]"],
+  [class~="bg-[#eee9e1]"], [class~="bg-[#eff6ff]"], [class~="bg-[#f1e8df]"],
+  [class~="bg-[#f1ede5]"], [class~="bg-[#f1ede7]"], [class~="bg-[#f1f7ff]"],
+  [class~="bg-[#f3eee6]"], [class~="bg-[#f4eee6]"], [class~="bg-[#f4eee7]"],
+  [class~="bg-[#f4f0e9]"], [class~="bg-[#f5eee7]"], [class~="bg-[#f5f1e9]"],
+  [class~="bg-[#f7f2eb]"], [class~="bg-[#f7f5f0]"], [class~="bg-[#f8f2eb]"],
+  [class~="bg-[#f8f3ed]"], [class~="bg-[#f8f5ef]"], [class~="bg-[#f8fbff]"],
+  [class~="bg-[#f9f6f0]"], [class~="bg-[#fbf8f3]"], [class~="bg-[#fcfaf6]"],
+  [class~="bg-[#fdfbf8]"], [class~="bg-[#fffaf5]"], [class~="bg-[#fffdf9]"],
+  [class~="bg-[#fffefa]"]
+) {
+  background-color: var(--kv-surface-alt);
+}
+
+html[data-kervox-theme]:not([data-kervox-theme="claude"]) .premium-workspace .workspace-main :is(
+  [class~="bg-[#f1ded0]"], [class~="bg-[#f4e5da]"], [class~="bg-[#f5e6dd]"],
+  [class~="bg-[#f6e7de]"], [class~="bg-[#f7e9de]"], [class~="bg-[#f7eae3]"],
+  [class~="bg-[#f7efe7]"], [class~="bg-[#faf0e9]"], [class~="bg-[#fbf0e8]"],
+  [class~="bg-[#fbf1e8]"], [class~="bg-[#fcf2e9]"]
+) {
+  background-color: var(--kv-accent-surface);
+}
+
+html[data-kervox-theme="black"] .premium-workspace .workspace-main :is(.bg-green-50, .bg-green-100, .bg-green-200, .bg-emerald-50, .bg-emerald-100, [class~="bg-[#dcefe1]"], [class~="bg-[#e8f1e7]"], [class~="bg-[#eaf1e9]"], [class~="bg-[#f2faf4]"]) {
+  background-color: #193427;
+}
+
+html[data-kervox-theme="black"] .premium-workspace .workspace-main :is(.text-green-500, .text-green-600, .text-green-700, .text-green-800, .text-green-900, .text-emerald-600, .text-emerald-700, [class*="text-[#3f6650]"], [class*="text-[#24744b]"]) {
+  color: #9cddb5;
+}
+
+html[data-kervox-theme="black"] .premium-workspace .workspace-main :is(.bg-red-50, .bg-red-100, .bg-red-200, .bg-rose-50, .bg-rose-100, [class~="bg-[#fff2ed]"]) {
+  background-color: #3b2528;
+}
+
+html[data-kervox-theme="black"] .premium-workspace .workspace-main :is(.text-red-500, .text-red-600, .text-red-700, .text-red-800, .text-red-900, .text-rose-600, .text-rose-700) {
+  color: #ffaaaa;
+}
+
+html[data-kervox-theme="black"] .premium-workspace .workspace-main :is(.bg-yellow-50, .bg-yellow-100, .bg-yellow-200, .bg-amber-50, .bg-amber-100, [class~="bg-[#f6efdc]"]) {
+  background-color: #3b321d;
+}
+
+html[data-kervox-theme="black"] .premium-workspace .workspace-main :is(.text-yellow-600, .text-yellow-700, .text-yellow-800, .text-yellow-900, .text-amber-600, .text-amber-700, .text-amber-800, .text-amber-900) {
+  color: #f4d38b;
+}
+
+html[data-kervox-theme="black"] .premium-workspace .workspace-main :is(.bg-orange-50, .bg-orange-100, .bg-orange-200) {
+  background-color: #3d2b22;
+}
+
+html[data-kervox-theme="black"] .premium-workspace .workspace-main :is(.text-orange-600, .text-orange-700, .text-orange-800, .text-orange-900) {
+  color: #ffbd9a;
+}
+
+html[data-kervox-theme="black"] .premium-workspace .workspace-main :is(.bg-blue-200, .bg-purple-200, .bg-indigo-100, .bg-cyan-50, .bg-cyan-100, .bg-cyan-200) {
+  background-color: var(--kv-accent-surface);
+}
+
+html[data-kervox-theme="black"] .premium-workspace .workspace-main :is(.text-cyan-600, .text-indigo-600) {
+  color: #addcff;
 }
 
 html[data-kervox-theme="black"] .premium-workspace [data-workspace-backdrop] {

@@ -484,8 +484,7 @@
 }
 
 .premium-workspace .dashboard-main > div > div:first-child:not(.grid),
-.premium-workspace .dashboard-main :is(.rounded-xl, .rounded-2xl),
-.premium-workspace .dashboard-main .grid > .relative.overflow-hidden {
+.premium-workspace .dashboard-main .grid > [data-kervox-metric] {
   border-color: var(--kv-line);
   background-color: var(--kv-surface);
   box-shadow: 0 1px 3px rgba(49, 37, 28, 0.035);

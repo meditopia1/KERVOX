@@ -40,6 +40,8 @@ describe('marketing dashboard', () => {
     expect(screen.queryByText('Plan Selected')).toBeNull();
     expect(screen.getByRole('link', { name: /Manage landing pages/ }).getAttribute('href')).toBe('/marketing/landing-pages');
     expect(screen.queryByRole('link', { name: /New campaign/ })).toBeNull();
+    expect(screen.getAllByText('New leads').some((label) => label.className.includes('text-[var(--kv-ink)]'))).toBe(true);
+    expect(document.querySelector('[data-kervox-metric] svg')?.getAttribute('class')).toContain('text-[var(--kv-accent-hover)]');
   });
 
   it('lets staff retry when dashboard data is unavailable', async () => {

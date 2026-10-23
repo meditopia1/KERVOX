@@ -3,6 +3,7 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/auth-context';
+import { PageLoading } from '@/components/layout/page-loading';
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -64,9 +65,5 @@ export default function DashboardPage() {
     }
   }, [loading, isAuthenticated, user, router]);
 
-  return (
-    <div className="min-h-screen flex items-center justify-center">
-      <p>Loading...</p>
-    </div>
-  );
+  return <PageLoading message="Taking you to your workspace..." />;
 }

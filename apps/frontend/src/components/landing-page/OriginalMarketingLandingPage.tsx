@@ -1,26 +1,16 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import Image from 'next/image';
-import { BrandLogo } from '@/components/brand/brand-logo';
 import Link from 'next/link';
+import { BrandLogo } from '@/components/brand/brand-logo';
 import {
-  ArrowDown,
-  ArrowLeft,
-  ArrowRight,
-  ArrowUpRight,
-  Boxes,
-  HardDrive,
-  Mail,
-  Minus,
-  Network,
-  Plus,
-  Server,
-  ShieldCheck,
-  ClipboardCheck,
+  ArrowDown, ArrowLeft, ArrowRight, ArrowUpRight, Boxes, ClipboardCheck,
+  HardDrive, Mail, Minus, Network, Plus, Server, ShieldCheck,
 } from 'lucide-react';
 import { MarketplaceRequestDialog } from './MarketplaceRequestDialog';
+import './server-experiences.css';
 
 type Product = {
   name: string;
@@ -30,118 +20,92 @@ type Product = {
   details: { title: string; text: string }[];
 };
 
+// Temporary catalog copy is intentional. Pricing and specifications are confirmed by enquiry.
 const products: Product[] = [
-  {
-    name: 'Product 1',
-    category: 'Rack server',
-    icon: Server,
+  { name: 'Product 1', category: 'Rack server', icon: Server,
     description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aenean vitae nibh sed sapien posuere feugiat.',
     details: [
       { title: 'Compute', text: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.' },
       { title: 'Configuration', text: 'Sed do eiusmod tempor incididunt ut labore et dolore.' },
       { title: 'Connectivity', text: 'Ut enim ad minim veniam, quis nostrud exercitation.' },
       { title: 'Availability', text: 'Duis aute irure dolor in reprehenderit in voluptate.' },
-    ],
-  },
-  {
-    name: 'Product 2',
-    category: 'Network equipment',
-    icon: Network,
+    ] },
+  { name: 'Product 2', category: 'Network equipment', icon: Network,
     description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer ut massa vitae nisl cursus varius.',
     details: [
       { title: 'Ports', text: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.' },
       { title: 'Throughput', text: 'Sed do eiusmod tempor incididunt ut labore et dolore.' },
       { title: 'Management', text: 'Ut enim ad minim veniam, quis nostrud exercitation.' },
       { title: 'Deployment', text: 'Duis aute irure dolor in reprehenderit in voluptate.' },
-    ],
-  },
-  {
-    name: 'Product 3',
-    category: 'Storage system',
-    icon: HardDrive,
+    ] },
+  { name: 'Product 3', category: 'Storage system', icon: HardDrive,
     description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce suscipit mauris non lorem tempor.',
     details: [
       { title: 'Storage', text: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.' },
       { title: 'Expansion', text: 'Sed do eiusmod tempor incididunt ut labore et dolore.' },
       { title: 'Interface', text: 'Ut enim ad minim veniam, quis nostrud exercitation.' },
       { title: 'Support', text: 'Duis aute irure dolor in reprehenderit in voluptate.' },
-    ],
-  },
-  {
-    name: 'Product 4',
-    category: 'Infrastructure bundle',
-    icon: Boxes,
+    ] },
+  { name: 'Product 4', category: 'Infrastructure bundle', icon: Boxes,
     description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc ultricies velit et libero viverra.',
     details: [
       { title: 'Hardware', text: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.' },
       { title: 'Included items', text: 'Sed do eiusmod tempor incididunt ut labore et dolore.' },
       { title: 'Setup', text: 'Ut enim ad minim veniam, quis nostrud exercitation.' },
       { title: 'Delivery', text: 'Duis aute irure dolor in reprehenderit in voluptate.' },
-    ],
-  },
+    ] },
 ];
 
-function ProductInquiry({ product, onBuy, onSell }: { product: Product; onBuy: (condition: 'new' | 'refurbished', quantity: number) => void; onSell: () => void }) {
+function ProductInquiry({ product, onBuy, onSell }: {
+  product: Product;
+  onBuy: (condition: 'new' | 'refurbished', quantity: number) => void;
+  onSell: () => void;
+}) {
   const [condition, setCondition] = useState<'new' | 'refurbished'>('new');
   const [quantity, setQuantity] = useState(1);
 
   return (
-    <aside className="rounded-2xl border border-[#dfd3c5] bg-[#fffefa] p-5 shadow-[0_18px_48px_rgba(49,37,28,0.09)] sm:p-7" aria-label="Product inquiry">
-      <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#a64c34]">Product inquiry</p>
-      <h3 className="mt-3 text-2xl font-semibold tracking-[-0.03em] text-[#2b2926]">{product.name}</h3>
-      <p className="mt-1 text-sm text-[#6d675f]">{product.category}</p>
-      <div className="mt-6 rounded-xl border border-[#e9dfd3] bg-[#f9f6f0] px-4 py-4">
-        <p className="text-xs font-medium text-[#81796e]">Pricing</p>
-        <p className="mt-1 text-2xl font-semibold tracking-tight text-[#2b2926]">Request a quote</p>
-        <p className="mt-1 text-xs leading-5 text-[#81796e]">Product pricing and availability are confirmed on enquiry.</p>
+    <aside className="exp-inquiry" aria-label="Product inquiry">
+      <p className="exp-inquiry-label">Product inquiry</p>
+      <h3>{product.name}</h3>
+      <p className="exp-inquiry-category">{product.category}</p>
+      <div className="exp-quote-panel">
+        <small>Pricing</small>
+        <strong>Request a quote</strong>
+        <p>Product pricing and availability are confirmed on enquiry.</p>
       </div>
-
-      <fieldset className="mt-6">
-        <legend className="text-sm font-semibold text-[#39352f]">Preferred condition</legend>
-        <div className="mt-2 grid grid-cols-2 gap-2">
+      <fieldset className="exp-fieldset">
+        <legend>Preferred condition</legend>
+        <div className="exp-choice-grid">
           {(['new', 'refurbished'] as const).map((option) => (
-            <button key={option} type="button" aria-pressed={condition === option} onClick={() => setCondition(option)}
-              className={`min-h-11 rounded-lg border px-3 text-sm font-medium capitalize transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#a64c34] ${condition === option ? 'border-[#a64c34] bg-[#f6e7de] text-[#873b29]' : 'border-[#ded4ca] bg-[#fffefa] text-[#554d45] hover:bg-[#f7f2eb]'}`}>
-              {option}
-            </button>
+            <button key={option} type="button" className="exp-choice" aria-pressed={condition === option}
+              onClick={() => setCondition(option)}>{option}</button>
           ))}
         </div>
       </fieldset>
-
-      <div className="mt-6 flex items-center justify-between gap-3">
-        <div>
-          <p className="text-sm font-semibold text-[#39352f]">Quantity</p>
-          <p className="text-xs text-[#81796e]">Units requested</p>
-        </div>
-        <div className="flex items-center gap-3 rounded-lg border border-[#ded4ca] bg-[#fffefa] p-1">
-          <button type="button" onClick={() => setQuantity((value) => Math.max(1, value - 1))} disabled={quantity === 1}
-            aria-label="Decrease quantity" className="flex h-8 w-8 items-center justify-center rounded-md text-[#554d45] hover:bg-[#f3eee6] disabled:cursor-not-allowed disabled:opacity-40">
-            <Minus className="h-4 w-4" aria-hidden="true" />
-          </button>
-          <output aria-label="Quantity" className="min-w-5 text-center text-sm font-semibold tabular-nums">{quantity}</output>
-          <button type="button" onClick={() => setQuantity((value) => Math.min(99, value + 1))} disabled={quantity === 99}
-            aria-label="Increase quantity" className="flex h-8 w-8 items-center justify-center rounded-md text-[#554d45] hover:bg-[#f3eee6] disabled:cursor-not-allowed disabled:opacity-40">
-            <Plus className="h-4 w-4" aria-hidden="true" />
-          </button>
+      <div className="exp-quantity">
+        <div><p className="exp-quantity-label">Quantity</p><small>Units requested</small></div>
+        <div className="exp-stepper">
+          <button type="button" onClick={() => setQuantity((value) => Math.max(1, value - 1))}
+            disabled={quantity === 1} aria-label="Decrease quantity"><Minus size={16} aria-hidden="true" /></button>
+          <output aria-label="Quantity">{quantity}</output>
+          <button type="button" onClick={() => setQuantity((value) => Math.min(99, value + 1))}
+            disabled={quantity === 99} aria-label="Increase quantity"><Plus size={16} aria-hidden="true" /></button>
         </div>
       </div>
-
-      <button type="button" onClick={() => onBuy(condition, quantity)} className="mt-7 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-lg bg-[#a64c34] px-5 text-sm font-semibold text-white shadow-[0_8px_18px_rgba(166,76,52,0.17)] transition-all hover:-translate-y-0.5 hover:bg-[#873b29] hover:shadow-[0_14px_28px_rgba(166,76,52,0.23)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#a64c34] motion-reduce:transform-none">
-        Request this product <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
+      <button type="button" className="exp-button exp-button-primary" onClick={() => onBuy(condition, quantity)}>
+        Request this product <ArrowUpRight size={17} aria-hidden="true" />
       </button>
-      <p className="mt-3 text-center text-xs leading-5 text-[#81796e]">Your inquiry is saved for follow-up. No order or payment is placed on this page.</p>
-      <div className="mt-5 border-t border-[#eee7dd] pt-5">
-        <p className="text-sm font-semibold text-[#39352f]">Have server equipment to sell?</p>
-        <button type="button" onClick={onSell} className="mt-2 inline-flex items-center gap-1.5 text-sm font-semibold text-[#873b29] underline-offset-4 hover:underline">Contact us to list a product <ArrowRight className="h-4 w-4" aria-hidden="true" /></button>
+      <p className="exp-inquiry-note">Your inquiry is saved for follow-up. No order or payment is placed on this page.</p>
+      <div className="exp-sell-link">
+        <strong>Have server equipment to sell?</strong>
+        <button type="button" onClick={onSell}>Contact us to list a product <ArrowRight size={15} aria-hidden="true" /></button>
       </div>
     </aside>
   );
 }
 
-export function OriginalMarketingLandingPage({
-  campaignName = 'KERVOX Server Marketplace',
-  variant = 'marketplace',
-}: {
+export function OriginalMarketingLandingPage({ campaignName = 'KERVOX Server Marketplace', variant = 'marketplace' }: {
   content: unknown;
   campaignName?: string;
   variant?: 'marketplace' | 'funnel';
@@ -149,8 +113,13 @@ export function OriginalMarketingLandingPage({
   const isFunnel = variant === 'funnel';
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [requestMode, setRequestMode] = useState<'buy' | 'sell' | null>(null);
-  const [requestProduct, setRequestProduct] = useState<{ name: string; category: string; condition: 'new' | 'refurbished'; quantity: number }>({ name: products[0].name, category: products[0].category, condition: 'new', quantity: 1 });
+  const [requestProduct, setRequestProduct] = useState({
+    name: products[0].name, category: products[0].category,
+    condition: 'new' as 'new' | 'refurbished', quantity: 1,
+  });
   const reducedMotion = useReducedMotion();
+  const pageRef = useRef<HTMLElement>(null);
+  const progressRef = useRef<HTMLDivElement>(null);
   const product = products[selectedIndex];
   const ProductIcon = product.icon;
   const move = (offset: number) => setSelectedIndex((index) => (index + offset + products.length) % products.length);
@@ -159,176 +128,230 @@ export function OriginalMarketingLandingPage({
     setRequestMode('buy');
   };
   const openSell = () => setRequestMode('sell');
+  const reveal = reducedMotion ? undefined : { opacity: 0, y: 24 };
+
+  useEffect(() => {
+    const page = pageRef.current;
+    if (!page) return;
+
+    let frame = 0;
+    let previousScrollY = window.scrollY;
+    page.dataset.scrollDirection = 'down';
+    const updateProgress = () => {
+      const distance = document.documentElement.scrollHeight - window.innerHeight;
+      const progress = distance > 0 ? Math.min(1, Math.max(0, window.scrollY / distance)) : 0;
+      if (progressRef.current) progressRef.current.style.transform = `scaleX(${progress})`;
+    };
+    const scheduleProgress = () => {
+      const currentScrollY = window.scrollY;
+      if (currentScrollY !== previousScrollY) {
+        page.dataset.scrollDirection = currentScrollY < previousScrollY ? 'up' : 'down';
+        previousScrollY = currentScrollY;
+      }
+      if (frame) return;
+      frame = window.requestAnimationFrame(() => {
+        frame = 0;
+        updateProgress();
+      });
+    };
+    updateProgress();
+    window.addEventListener('scroll', scheduleProgress, { passive: true });
+    window.addEventListener('resize', scheduleProgress);
+
+    let observer: IntersectionObserver | undefined;
+    if (!reducedMotion && typeof IntersectionObserver !== 'undefined') {
+      const elements = Array.from(page.querySelectorAll<HTMLElement>('[data-scroll-reveal]'));
+      observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          // Re-arm only once fully offscreen, so content never fades while it is being read.
+          entry.target.classList.toggle('is-visible', entry.isIntersecting);
+        });
+      }, { threshold: [0, 0.08] });
+      elements.forEach((element) => {
+        // Content already on screen must not disappear when hydration completes.
+        const bounds = element.getBoundingClientRect();
+        if (bounds.bottom > 0 && bounds.top < window.innerHeight) {
+          element.classList.add('is-visible');
+        }
+        observer?.observe(element);
+      });
+      page.classList.add('scroll-ready');
+    }
+
+    return () => {
+      window.removeEventListener('scroll', scheduleProgress);
+      window.removeEventListener('resize', scheduleProgress);
+      if (frame) window.cancelAnimationFrame(frame);
+      observer?.disconnect();
+      page.classList.remove('scroll-ready');
+      delete page.dataset.scrollDirection;
+    };
+  }, [reducedMotion]);
 
   return (
-    <main className="min-h-screen bg-[#f7f5f0] text-[#2b2926]">
-      <header className="sticky top-0 z-30 border-b border-[#e6e0d7] bg-[#fffefa]/95 backdrop-blur-md">
-        <div className="mx-auto flex min-h-[72px] max-w-7xl items-center justify-between gap-4 px-5 py-4 sm:px-8">
-          <Link href="/" aria-label="KERVOX home" className="inline-flex items-center">
-            <span className="kervox-public-brand inline-flex items-center"><BrandLogo width={145} height={30} /></span>
+    <main ref={pageRef} className={`kervox-experience ${isFunnel ? 'exp-funnel' : 'exp-marketplace'}`}>
+      <div ref={progressRef} className="exp-scroll-progress" aria-hidden="true" />
+      <header className="exp-header">
+        <div className="exp-container exp-header-inner">
+          <Link href="/" aria-label="KERVOX home" className="kervox-public-brand inline-flex items-center">
+            <BrandLogo width={145} height={30} />
           </Link>
-          <nav aria-label="KERVOX navigation" className="flex items-center gap-3 sm:gap-6">
-            <a href="#products" className="hidden text-sm font-medium text-[#554d45] hover:text-[#873b29] sm:inline">Explore products</a>
-            <button type="button" onClick={openSell} className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-[#d8cec2] bg-[#fffefa] px-4 text-sm font-semibold text-[#39352f] transition-colors hover:bg-[#f4eee6] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#a64c34]">
-              Sell a product <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
-            </button>
+          <nav className="exp-header-nav" aria-label="KERVOX navigation">
+            {isFunnel ? <span className="exp-header-tag">KER01 / Infrastructure campaign</span> : <a className="exp-header-link" href="#products">Explore collection</a>}
+            {isFunnel ? (
+              <a className="exp-button exp-button-primary" href="#products">Request a quote <ArrowUpRight size={16} aria-hidden="true" /></a>
+            ) : (
+              <button type="button" className="exp-button exp-button-quiet" onClick={openSell}>Sell a product <ArrowUpRight size={16} aria-hidden="true" /></button>
+            )}
           </nav>
         </div>
       </header>
 
-      <section className="relative isolate overflow-hidden border-b border-[#e6e0d7]">
-        <div className="absolute inset-0 -z-10 bg-[#f7f5f0] sm:hidden" style={{ backgroundImage: "url('/kervox-server-hero.png')", backgroundRepeat: 'no-repeat', backgroundSize: 'auto 76%', backgroundPosition: 'right -200px bottom -105px' }} aria-hidden="true" />
-        <div className="absolute inset-0 -z-10 hidden bg-[#f7f5f0] sm:block lg:hidden" style={{ backgroundImage: "url('/kervox-server-hero.png')", backgroundRepeat: 'no-repeat', backgroundSize: 'auto 76%', backgroundPosition: 'right -135px bottom -105px' }} aria-hidden="true" />
-        <div className="absolute inset-0 -z-10 hidden bg-[#f7f5f0] lg:block xl:hidden" style={{ backgroundImage: "url('/kervox-server-hero.png')", backgroundRepeat: 'no-repeat', backgroundSize: 'auto 160%', backgroundPosition: 'right -300px bottom -125px' }} aria-hidden="true" />
-        <div className="absolute inset-0 -z-10 hidden bg-[#f7f5f0] xl:block 2xl:hidden" style={{ backgroundImage: "url('/kervox-server-hero.png')", backgroundRepeat: 'no-repeat', backgroundSize: 'auto 160%', backgroundPosition: 'right -150px bottom -125px' }} aria-hidden="true" />
-        <div className="absolute inset-0 -z-10 hidden bg-[#f7f5f0] 2xl:block" style={{ backgroundImage: "url('/kervox-server-hero.png')", backgroundRepeat: 'no-repeat', backgroundSize: 'auto 160%', backgroundPosition: 'right -100px bottom -125px' }} aria-hidden="true" />
-        <div className="absolute inset-0 -z-10 lg:hidden" style={{ background: 'linear-gradient(180deg, #f7f5f0 0%, rgba(247,245,240,.98) 50%, transparent 68%)' }} aria-hidden="true" />
-        <div className="absolute inset-0 -z-10 hidden lg:block" style={{ background: 'linear-gradient(90deg, #f7f5f0 0%, rgba(247,245,240,.96) 35%, rgba(247,245,240,.25) 53%, transparent 64%)' }} aria-hidden="true" />
-        <motion.div aria-hidden="true" className="pointer-events-none absolute -right-20 top-16 -z-10 h-96 w-96 rounded-full bg-[#d9a185]/20 blur-[100px]" animate={reducedMotion ? undefined : { scale: [1, 1.28, 1], opacity: [.3, .6, .3] }} transition={{ duration: 9, repeat: Infinity, ease: 'easeInOut' }} />
-        <div className="mx-auto flex min-h-[850px] max-w-7xl items-start px-5 pb-[320px] pt-20 sm:min-h-[720px] sm:px-8 sm:pb-[280px] lg:min-h-[590px] lg:items-center lg:py-24">
-          <motion.div initial={reducedMotion ? false : { opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: .7, ease: [0.22, 1, 0.36, 1] }} className="max-w-[640px]">
-            <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#a64c34]">{campaignName}</p>
-            <h1 className="mt-5 text-4xl font-semibold leading-[1.07] tracking-[-0.045em] sm:text-5xl lg:text-6xl">
-              {isFunnel ? 'Build the infrastructure your business depends on.' : 'Server products for the work that matters.'}
-            </h1>
-            <p className="mt-6 max-w-xl text-lg leading-8 text-[#5e5750]">{isFunnel ? 'Explore server hardware, network equipment, and infrastructure bundles. Tell us what you need and receive a tailored quote.' : 'Explore server hardware, network equipment, and infrastructure products in one considered marketplace.'}</p>
-            <div className="mt-8 flex flex-wrap gap-3">
-              <a href="#products" className="inline-flex min-h-12 items-center gap-2 rounded-lg bg-[#a64c34] px-5 text-sm font-semibold text-white shadow-[0_8px_20px_rgba(166,76,52,0.16)] transition-colors hover:bg-[#873b29] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#a64c34]">
-                {isFunnel ? 'Request a quote' : 'Explore products'} <ArrowRight className="h-4 w-4" aria-hidden="true" />
-              </a>
-              <button type="button" onClick={openSell} className="inline-flex min-h-12 items-center gap-2 rounded-lg border border-[#d8cec2] bg-[#fffefa]/90 px-5 text-sm font-semibold text-[#39352f] transition-colors hover:bg-[#fffefa] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#a64c34]">
-                Sell equipment <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
-              </button>
+      {isFunnel ? (
+        <section className="exp-hero exp-funnel-hero" aria-labelledby="hero-heading">
+          <div className="exp-container exp-funnel-hero-inner">
+            <motion.div className="exp-funnel-hero-copy" initial={reveal} animate={{ opacity: 1, y: 0 }} transition={{ duration: .8, ease: [0.22, 1, 0.36, 1] }}>
+              <p className="exp-eyebrow">{campaignName} / Built for what&apos;s next</p>
+              <h1 id="hero-heading" className="exp-display" style={{ marginTop: '1.6rem' }}>Build the infrastructure your <em>business depends on.</em></h1>
+              <p className="exp-copy">Explore server hardware, network equipment, and infrastructure bundles. Tell us what you need and receive a tailored quote.</p>
+              <div className="exp-hero-actions">
+                <a href="#products" className="exp-button exp-button-primary">Request a quote <ArrowRight size={17} aria-hidden="true" /></a>
+                <button type="button" className="exp-button exp-button-quiet" onClick={openSell}>Sell equipment <ArrowUpRight size={17} aria-hidden="true" /></button>
+              </div>
+              <a href="#products" className="exp-hero-note">Explore the collection <ArrowDown size={16} aria-hidden="true" /></a>
+            </motion.div>
+            <motion.div className="exp-funnel-art" initial={reducedMotion ? false : { opacity: 0, scale: .88 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 1, delay: .15 }} aria-hidden="true">
+              <Image src="/kervox-server-rack.png" alt="" width={640} height={640} priority className="exp-funnel-rack" />
+            </motion.div>
+            <div className="exp-funnel-steps" aria-label="How this campaign works">
+              <span><b>01</b> Explore equipment</span><span><b>02</b> Share requirements</span><span><b>03</b> Receive a quote</span>
             </div>
-            <a href="#products" className="mt-12 inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.12em] text-[#6d675f] hover:text-[#873b29]">
-              Browse the collection <ArrowDown className="h-4 w-4" aria-hidden="true" />
-            </a>
-          </motion.div>
+          </div>
+        </section>
+      ) : (
+        <>
+          <section className="exp-hero exp-marketplace-hero" aria-labelledby="hero-heading">
+            <div className="exp-container exp-marketplace-hero-inner">
+              <motion.div className="exp-marketplace-hero-copy" initial={reveal} animate={{ opacity: 1, y: 0 }} transition={{ duration: .8, ease: [0.22, 1, 0.36, 1] }}>
+                <p className="exp-eyebrow">{campaignName} / The collection</p>
+                <h1 id="hero-heading" className="exp-display" style={{ marginTop: '1.6rem' }}>Server products for the work that matters.</h1>
+                <p className="exp-copy">Explore server hardware, network equipment, and infrastructure products in one considered marketplace.</p>
+                <div className="exp-hero-actions">
+                  <a href="#products" className="exp-button exp-button-primary">Explore products <ArrowRight size={17} aria-hidden="true" /></a>
+                  <button type="button" className="exp-button exp-button-quiet" onClick={openSell}>Sell equipment <ArrowUpRight size={17} aria-hidden="true" /></button>
+                </div>
+                <a href="#products" className="exp-hero-note">Browse the collection <ArrowDown size={16} aria-hidden="true" /></a>
+              </motion.div>
+              <div className="exp-marketplace-hero-art" role="img" aria-label="Server rack in a connected cloud infrastructure scene">
+                <span className="exp-art-caption"><span aria-hidden="true" /> KERVOX / Infrastructure</span>
+              </div>
+            </div>
+          </section>
+          <div className="exp-editorial-strip" aria-label="Marketplace overview">
+            <div className="exp-container exp-editorial-strip-inner">
+              <div data-scroll-reveal><Server size={23} aria-hidden="true" /><span><strong>Server equipment</strong><small>Explore the current collection</small></span></div>
+              <div data-scroll-reveal className="exp-reveal-delay-1"><ClipboardCheck size={23} aria-hidden="true" /><span><strong>Quote-led buying</strong><small>Discuss pricing and availability</small></span></div>
+              <div data-scroll-reveal className="exp-reveal-delay-2"><Boxes size={23} aria-hidden="true" /><span><strong>Equipment listings</strong><small>Share hardware you want to sell</small></span></div>
+            </div>
+          </div>
+        </>
+      )}
+
+      <section id="products" tabIndex={0} onKeyDown={(event) => {
+        if (event.target !== event.currentTarget) return;
+        if (event.key === 'ArrowLeft') { event.preventDefault(); move(-1); }
+        if (event.key === 'ArrowRight') { event.preventDefault(); move(1); }
+      }} className="exp-products" aria-labelledby="products-heading">
+        <div className="exp-container">
+          <div className="exp-products-head" data-scroll-reveal>
+            <div>
+              <p className="exp-eyebrow">{isFunnel ? '01 / Find your equipment' : 'The collection / Featured products'}</p>
+              <h2 id="products-heading" className="exp-section-title">{isFunnel ? 'Specify what you need.' : 'Explore our server products.'}</h2>
+              <p className="exp-copy">Select a product to review its category and temporary details, then send us your requirements.</p>
+            </div>
+            <div className="exp-product-count" aria-live="polite" aria-atomic="true"><strong>{String(selectedIndex + 1).padStart(2, '0')}</strong><small>/ {String(products.length).padStart(2, '0')}</small></div>
+          </div>
+          <div className="exp-progress" aria-hidden="true" data-scroll-reveal><span style={{ width: `${((selectedIndex + 1) / products.length) * 100}%` }} /></div>
+          <div className="exp-carousel" data-scroll-reveal>
+            <button type="button" className="exp-carousel-arrow is-prev" onClick={() => move(-1)} aria-label="Previous product" aria-controls="marketplace-product-display"><ArrowLeft size={23} aria-hidden="true" /></button>
+            <AnimatePresence mode="wait" initial={false}>
+              <motion.div id="marketplace-product-display" key={product.name} className="exp-carousel-grid" aria-live="polite"
+                initial={reducedMotion ? false : { opacity: 0, x: 35, filter: 'blur(7px)' }} animate={{ opacity: 1, x: 0, filter: 'blur(0px)' }}
+                exit={reducedMotion ? undefined : { opacity: 0, x: -24, filter: 'blur(5px)', transition: { duration: .13 } }}
+                transition={{ duration: reducedMotion ? 0 : .34, ease: [0.22, 1, 0.36, 1] }}>
+                <article className="exp-product-panel">
+                  <div className="exp-product-feature">
+                    <div>
+                      <span className="exp-product-icon"><ProductIcon size={24} aria-hidden="true" /></span>
+                      <p className="exp-product-meta">{product.category}</p>
+                      <h3>{product.name}</h3>
+                      <p>{product.description}</p>
+                    </div>
+                    <div className="exp-product-visual"><Image src="/kervox-server-rack.png" alt="Server rack equipment" width={330} height={330} className="exp-product-rack" /></div>
+                  </div>
+                  <div className="exp-product-detail-grid">
+                    {product.details.map((detail, index) => (
+                      <div className="exp-product-detail" key={detail.title}>
+                        <strong>0{index + 1} / {detail.title}</strong><p>{detail.text}</p>
+                      </div>
+                    ))}
+                  </div>
+                </article>
+                <ProductInquiry product={product} onBuy={openBuy} onSell={openSell} />
+              </motion.div>
+            </AnimatePresence>
+            <button type="button" className="exp-carousel-arrow is-next" onClick={() => move(1)} aria-label="Next product" aria-controls="marketplace-product-display"><ArrowRight size={23} aria-hidden="true" /></button>
+          </div>
         </div>
       </section>
 
-      <section id="products" tabIndex={0} onKeyDown={(event) => { if (event.key === 'ArrowLeft') move(-1); if (event.key === 'ArrowRight') move(1); }} className="scroll-mt-20 px-5 py-16 outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#a64c34] sm:px-8 lg:py-24" aria-labelledby="products-heading">
-        <div className="mx-auto max-w-7xl">
-          <div className="max-w-2xl">
-            <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#a64c34]">The collection</p>
-            <h2 id="products-heading" className="mt-3 text-3xl font-semibold tracking-[-0.04em] sm:text-4xl">Explore our server products.</h2>
-            <p className="mt-4 text-base leading-7 text-[#6d675f]">Select a product to review its category and current placeholder details, then send us your requirements.</p>
-          </div>
-
-          <div className="mt-9 flex items-center justify-between border-t border-[#dfd3c5] pt-4 text-[11px] font-bold uppercase tracking-[0.18em] text-[#a64c34]">
-            <span>Featured collection</span>
-            <span aria-live="polite" aria-atomic="true" className="tabular-nums text-[#6d675f]">{String(selectedIndex + 1).padStart(2, '0')} <span className="text-[#b5a89b]">/</span> {String(products.length).padStart(2, '0')}</span>
-          </div>
-
-          <div className="relative mt-6">
-            <button type="button" onClick={() => move(-1)} aria-label="Previous product" aria-controls="marketplace-product-display" className="absolute left-0 top-[375px] z-20 flex h-14 w-14 -translate-y-1/2 items-center justify-center rounded-full border border-[#cfbbaa] bg-[#fffefa]/95 text-[#873b29] shadow-[0_12px_32px_rgba(45,30,20,.18),inset_0_1px_0_rgba(255,255,255,.9)] backdrop-blur-xl transition-all duration-300 hover:scale-105 hover:border-[#a64c34] hover:bg-[#a64c34] hover:text-white hover:shadow-[0_18px_38px_rgba(118,61,40,.28)] active:scale-95 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#a64c34] motion-reduce:transition-none sm:-left-7 sm:top-[240px] lg:top-1/2 2xl:-left-16"><ArrowLeft className="h-5 w-5" aria-hidden="true" /></button>
-          <AnimatePresence mode="wait" initial={false}>
-          <motion.div id="marketplace-product-display" key={product.name} initial={reducedMotion ? false : { opacity: 0, x: 38, filter: 'blur(8px)' }} animate={{ opacity: 1, x: 0, filter: 'blur(0px)' }} exit={reducedMotion ? undefined : { opacity: 0, x: -24, filter: 'blur(6px)', transition: { duration: .12 } }} transition={{ duration: reducedMotion ? 0 : .26, ease: [0.22, 1, 0.36, 1] }}
-            className="grid gap-6 lg:grid-cols-[minmax(0,1.35fr)_minmax(330px,.65fr)]" aria-live="polite">
-            <div className="self-start overflow-hidden rounded-2xl border border-[#e3d9ce] bg-[#fffefa] shadow-[0_12px_36px_rgba(49,37,28,0.045)]">
-              <div className="grid items-center gap-6 border-b border-[#ebe3d9] bg-[radial-gradient(circle_at_75%_20%,#f5dfca,transparent_52%),#faf6f0] px-6 py-8 sm:px-9 md:grid-cols-[1fr_.8fr]">
-                <div>
-                  <span className="inline-flex h-12 w-12 items-center justify-center rounded-xl border border-[#e8d3c2] bg-[#fffefa] text-[#a64c34]"><ProductIcon className="h-6 w-6" aria-hidden="true" /></span>
-                  <p className="mt-6 text-[11px] font-bold uppercase tracking-[0.16em] text-[#a64c34]">{product.category}</p>
-                  <h3 className="mt-2 text-3xl font-semibold tracking-[-0.04em]">{product.name}</h3>
-                  <p className="mt-3 max-w-lg text-sm leading-7 text-[#6d675f]">{product.description}</p>
-                </div>
-                <div className="relative flex min-h-52 items-center justify-center overflow-hidden rounded-xl border border-[#eadfd2] bg-[radial-gradient(circle_at_50%_100%,#edc9b5,transparent_60%),#f9f6ef] p-4">
-                  <div className="absolute inset-x-8 bottom-5 h-4 rounded-full bg-[#6f3c2b]/15 blur-lg" aria-hidden="true" />
-                  <motion.div animate={reducedMotion ? undefined : { y: [0, -6, 0] }} transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}>
-                    <Image src="/kervox-server-rack.png" alt="Server rack equipment" width={260} height={260} className="relative h-52 w-auto object-contain drop-shadow-[0_20px_18px_rgba(49,37,28,.22)]" />
-                  </motion.div>
-                </div>
-              </div>
-              <div className="grid gap-px bg-[#eee7dd] sm:grid-cols-2">
-                {product.details.map((detail, index) => (
-                  <div key={detail.title} className="bg-[#fffefa] p-5 sm:p-6">
-                    <p className="text-[11px] font-bold uppercase tracking-[0.13em] text-[#a64c34]">0{index + 1} / {detail.title}</p>
-                    <p className="mt-2 text-sm leading-6 text-[#6d675f]">{detail.text}</p>
-                  </div>
+      {isFunnel ? (
+        <>
+          <section className="exp-process" aria-labelledby="process-heading">
+            <div className="exp-container">
+              <div data-scroll-reveal><p className="exp-eyebrow">02 / What happens next</p>
+                <h2 id="process-heading" className="exp-section-title">A clear path from enquiry to quote.</h2></div>
+              <div className="exp-process-grid">
+                {[
+                  { icon: Mail, title: 'Submit an enquiry', text: 'Choose a product and tell us about your requirements.' },
+                  { icon: ClipboardCheck, title: 'We review availability', text: 'The team reviews your request and confirms the relevant details.' },
+                  { icon: ShieldCheck, title: 'Receive a tailored quote', text: 'We follow up with an offer based on the equipment and quantity you need.' },
+                ].map(({ icon: Icon, title, text }, index) => (
+                  <article key={title} className={`exp-process-step exp-reveal-delay-${index}`} data-scroll-reveal>
+                    <span>0{index + 1}</span><Icon size={26} aria-hidden="true" /><h3>{title}</h3><p>{text}</p>
+                  </article>
                 ))}
               </div>
             </div>
-            <ProductInquiry product={product} onBuy={openBuy} onSell={openSell} />
-          </motion.div>
-          </AnimatePresence>
-            <button type="button" onClick={() => move(1)} aria-label="Next product" aria-controls="marketplace-product-display" className="absolute right-0 top-[375px] z-20 flex h-14 w-14 -translate-y-1/2 items-center justify-center rounded-full border border-[#cfbbaa] bg-[#fffefa]/95 text-[#873b29] shadow-[0_12px_32px_rgba(45,30,20,.18),inset_0_1px_0_rgba(255,255,255,.9)] backdrop-blur-xl transition-all duration-300 hover:scale-105 hover:border-[#a64c34] hover:bg-[#a64c34] hover:text-white hover:shadow-[0_18px_38px_rgba(118,61,40,.28)] active:scale-95 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#a64c34] motion-reduce:transition-none sm:-right-7 sm:top-[240px] lg:top-1/2 2xl:-right-16"><ArrowRight className="h-5 w-5" aria-hidden="true" /></button>
-          </div>
-        </div>
-      </section>
-
-      {isFunnel && (
-        <section className="border-y border-[#e6e0d7] bg-[#fffefa] px-5 py-16 sm:px-8 lg:py-20" aria-labelledby="process-heading">
-          <div className="mx-auto max-w-7xl">
-            <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#a64c34]">What happens next</p>
-            <h2 id="process-heading" className="mt-3 text-3xl font-semibold tracking-[-0.04em] sm:text-4xl">A clear path from enquiry to quote.</h2>
-            <div className="mt-9 grid gap-4 md:grid-cols-3">
-              {[
-                { icon: Mail, title: 'Submit an enquiry', text: 'Choose a product and tell us about your requirements.' },
-                { icon: ClipboardCheck, title: 'We review availability', text: 'The team reviews your request and confirms the relevant details.' },
-                { icon: ShieldCheck, title: 'Receive a tailored quote', text: 'We follow up with an offer based on the equipment and quantity you need.' },
-              ].map(({ icon: Icon, title, text }, index) => (
-                <article key={title} className="rounded-xl border border-[#e6e0d7] bg-[#f9f6f0] p-6">
-                  <div className="flex items-center justify-between text-[#a64c34]"><Icon className="h-6 w-6" aria-hidden="true" /><span className="text-xs font-bold tracking-[0.16em]">0{index + 1}</span></div>
-                  <h3 className="mt-5 text-lg font-semibold">{title}</h3>
-                  <p className="mt-2 text-sm leading-6 text-[#6d675f]">{text}</p>
-                </article>
-              ))}
+          </section>
+          <section className="exp-funnel-seller" aria-labelledby="sell-heading">
+            <div className="exp-container exp-funnel-seller-inner" data-scroll-reveal>
+              <div><p className="exp-eyebrow">03 / For sellers</p><h2 id="sell-heading">Have server equipment to sell?</h2><p>Tell us about your equipment. Your listing request will be saved for review.</p></div>
+              <button type="button" className="exp-button exp-button-primary" onClick={openSell}>List your equipment <ArrowUpRight size={17} aria-hidden="true" /></button>
+            </div>
+          </section>
+          <section className="exp-funnel-final" aria-labelledby="final-cta-heading">
+            <div className="exp-container" data-scroll-reveal><p className="exp-eyebrow">Your next step</p><h2 id="final-cta-heading" className="exp-section-title">Find the right equipment for your work.</h2><p>Browse the collection and send a product enquiry when you are ready.</p><a href="#products" className="exp-button exp-button-primary">Request a quote <ArrowRight size={17} aria-hidden="true" /></a></div>
+          </section>
+        </>
+      ) : (
+        <section className="exp-story" aria-labelledby="marketplace-heading">
+          <div className="exp-container">
+            <div className="exp-story-head" data-scroll-reveal><div><p className="exp-eyebrow">Two ways to connect</p><h2 id="marketplace-heading" className="exp-section-title">A clearer place for infrastructure.</h2></div><p className="exp-copy">Whether you are sourcing equipment or have hardware to offer, start with a conversation tailored to your requirements.</p></div>
+            <div className="exp-story-grid">
+              <article className="exp-story-card" data-scroll-reveal>
+                <ShieldCheck size={29} aria-hidden="true" /><small>For buyers</small><h3>Find equipment for the work ahead.</h3><p>Send a product enquiry and discuss availability and pricing with the team.</p>
+              </article>
+              <article className="exp-story-card is-seller exp-reveal-delay-1" data-scroll-reveal>
+                <Boxes size={29} aria-hidden="true" /><small>For sellers</small><h3>Put your equipment in the conversation.</h3><p>Share the hardware you have available so the team can review it for listing.</p><button type="button" onClick={openSell}>List your equipment <ArrowUpRight size={16} aria-hidden="true" /></button>
+              </article>
             </div>
           </div>
         </section>
       )}
 
-      {isFunnel && (
-        <section className="bg-[#f7f5f0] px-5 py-16 sm:px-8 lg:py-20" aria-labelledby="sell-heading">
-          <div className="mx-auto flex max-w-7xl flex-col gap-6 rounded-2xl border border-[#dfd3c5] bg-[#fffefa] p-8 shadow-[0_16px_40px_rgba(49,37,28,.06)] md:flex-row md:items-center md:justify-between md:p-12">
-            <div><p className="text-xs font-bold uppercase tracking-[0.18em] text-[#a64c34]">For sellers</p><h2 id="sell-heading" className="mt-3 text-3xl font-semibold tracking-[-0.04em]">Have server equipment to sell?</h2><p className="mt-3 max-w-xl text-sm leading-7 text-[#6d675f]">Tell us about your equipment. Your listing request will be saved for review.</p></div>
-            <button type="button" onClick={openSell} className="inline-flex min-h-12 shrink-0 items-center justify-center gap-2 rounded-lg bg-[#a64c34] px-6 text-sm font-semibold text-white transition-colors hover:bg-[#873b29] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#a64c34]">List your equipment <ArrowUpRight className="h-4 w-4" aria-hidden="true" /></button>
-          </div>
-        </section>
-      )}
-
-      <section className="border-y border-[#e6e0d7] bg-[#fffefa] px-5 py-16 sm:px-8" aria-labelledby="marketplace-heading">
-        <div className="mx-auto grid max-w-7xl gap-8 md:grid-cols-[.85fr_1.15fr] md:items-center">
-          <div>
-            <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#a64c34]">Buy and sell</p>
-            <h2 id="marketplace-heading" className="mt-3 text-3xl font-semibold tracking-[-0.04em] sm:text-4xl">A clearer place for infrastructure.</h2>
-          </div>
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="rounded-xl border border-[#e6e0d7] bg-[#f9f6f0] p-5">
-              <ShieldCheck className="h-6 w-6 text-[#a64c34]" aria-hidden="true" />
-              <h3 className="mt-4 text-base font-semibold">For buyers</h3>
-              <p className="mt-2 text-sm leading-6 text-[#6d675f]">Send a product enquiry and discuss availability and pricing with the team.</p>
-            </div>
-            <div className="rounded-xl border border-[#e6e0d7] bg-[#f9f6f0] p-5">
-              <Mail className="h-6 w-6 text-[#a64c34]" aria-hidden="true" />
-              <h3 className="mt-4 text-base font-semibold">For sellers</h3>
-              <p className="mt-2 text-sm leading-6 text-[#6d675f]">Share the equipment you have available so the team can review it for listing.</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {isFunnel && (
-        <section className="bg-[#f7f5f0] px-5 pb-16 sm:px-8 lg:pb-20" aria-labelledby="final-cta-heading">
-          <div className="mx-auto flex max-w-7xl flex-col gap-6 rounded-2xl bg-[#2b2926] px-8 py-10 text-[#fffefa] md:flex-row md:items-center md:justify-between md:px-12">
-            <div><p className="text-xs font-bold uppercase tracking-[0.18em] text-[#d9aa8e]">Your next step</p><h2 id="final-cta-heading" className="mt-3 text-2xl font-semibold tracking-tight sm:text-3xl">Find the right equipment for your work.</h2><p className="mt-2 text-sm leading-6 text-[#ded5ca]">Browse the collection and send a product enquiry when you are ready.</p></div>
-            <a href="#products" className="inline-flex min-h-12 shrink-0 items-center justify-center gap-2 rounded-lg bg-[#a64c34] px-6 text-sm font-semibold text-white transition-colors hover:bg-[#bb634a] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white">Request a quote <ArrowRight className="h-4 w-4" aria-hidden="true" /></a>
-          </div>
-        </section>
-      )}
-
-      <footer className="bg-[#2b2926] px-5 py-10 text-[#e4dbd1] sm:px-8">
-        <div className="mx-auto flex max-w-7xl flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <p className="text-lg font-bold tracking-[0.2em] text-white">KERVOX</p>
-            <p className="mt-2 max-w-md text-sm leading-6">Server products and connected infrastructure, brought together.</p>
-          </div>
-          <div className="text-sm">
-            <a href="mailto:info@kervox.cloud" className="font-medium text-white underline-offset-4 hover:underline">info@kervox.cloud</a>
-            <p className="mt-2 text-[#bdb1a5]">© {new Date().getFullYear()} KERVOX</p>
-          </div>
-        </div>
+      <footer className="exp-footer">
+        <div className="exp-container exp-footer-inner"><div><strong>KERVOX</strong><p>Server products and connected infrastructure, brought together.</p></div><div><a href="mailto:info@kervox.cloud">info@kervox.cloud</a><p>© {new Date().getFullYear()} KERVOX</p></div></div>
       </footer>
       <MarketplaceRequestDialog mode={requestMode} product={requestProduct} onClose={() => setRequestMode(null)} />
     </main>

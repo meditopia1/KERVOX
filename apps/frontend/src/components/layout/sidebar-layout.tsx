@@ -1109,15 +1109,15 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
   // Show loading state while user data is being fetched
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#f8fbff]">
+      <div className="premium-workspace kv-loading-bootstrap min-h-screen" aria-busy="true">
         <div className="flex min-h-screen">
-          <aside className="hidden w-64 border-r border-[#dce8f7] bg-white lg:block">
+          <aside className="kv-loading-bootstrap__sidebar hidden w-64 border-r lg:block" aria-hidden="true">
             <div className="flex h-16 items-center border-b border-gray-200 px-4">
               <BrandLogo width={157} height={32} />
             </div>
             <div className="space-y-3 px-3 py-4">
               {[...Array(6)].map((_, index) => (
-                <div key={index} className="h-12 animate-pulse rounded-lg bg-slate-100" />
+                <div key={index} className="kv-loading-skeleton kv-loading-bootstrap__nav" />
               ))}
             </div>
           </aside>
@@ -1226,7 +1226,7 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
                             {isActive && <span aria-hidden="true" className="absolute left-0 top-2 bottom-2 w-[3px] rounded-full bg-[#2563eb]" />}
                             <span className="relative z-30 shrink-0" aria-hidden="true">
                               {pendingHref === item.href
-                                ? <span className="block h-5 w-5 animate-spin rounded-full border-2 border-current border-t-transparent motion-reduce:animate-none" />
+                                ? <span className="kv-action-spinner kv-action-spinner--nav animate-spin motion-reduce:animate-none" />
                                 : item.icon}
                             </span>
                             <span className={`relative z-30 flex-1 ${sidebarCollapsed ? 'lg:hidden' : ''}`}>{item.name}</span>

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { SidebarLayout } from '@/components/layout/sidebar-layout';
+import { LoadingPanel } from '@/components/layout/page-loading';
 
 type TabType = 'overview' | 'groups' | 'members' | 'transactions' | 'failed-payments' | 'refunds' | 'reconciliation' | 'webhooks' | 'reports' | 'batches' | 'today';
 
@@ -195,9 +196,7 @@ export default function DebitOrdersPage() {
               </div>
 
               {loading ? (
-                <div className="text-center py-8">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-                </div>
+                <LoadingPanel message="Loading today's transactions..." />
               ) : todayTransactions.length === 0 ? (
                 <div className="text-center py-12 text-gray-500 bg-gray-50 rounded-lg">
                   <div className="text-4xl mb-3">📅</div>
@@ -332,9 +331,7 @@ export default function DebitOrdersPage() {
               </div>
 
               {loading ? (
-                <div className="text-center py-8">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-                </div>
+                <LoadingPanel message="Loading batches..." />
               ) : batches.length === 0 ? (
                 <div className="text-center py-12 text-gray-500">
                   <p className="text-lg mb-2">No batches yet</p>
@@ -393,9 +390,7 @@ export default function DebitOrdersPage() {
             <div>
               <h2 className="text-xl font-semibold mb-6">All Transactions</h2>
               {loading ? (
-                <div className="text-center py-8">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-                </div>
+                <LoadingPanel message="Loading transactions..." />
               ) : transactions.length === 0 ? (
                 <div className="text-center py-12 text-gray-500">
                   <p>No transactions found</p>
@@ -449,9 +444,7 @@ export default function DebitOrdersPage() {
             <div>
               <h2 className="text-xl font-semibold mb-6">Failed Payments</h2>
               {loading ? (
-                <div className="text-center py-8">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-                </div>
+                <LoadingPanel message="Loading failed payments..." />
               ) : failedPayments.length === 0 ? (
                 <div className="text-center py-12 text-gray-500">
                   <p>No failed payments</p>

@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/auth-context';
 import { SidebarLayout } from '@/components/layout/sidebar-layout';
-import { InlinePageLoading } from '@/components/layout/page-loading';
+import { InlinePageLoading, LoadingPanel } from '@/components/layout/page-loading';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -359,10 +359,7 @@ export default function AdminBrokersPage() {
           <CardHeader><CardTitle>Broker Directory</CardTitle></CardHeader>
           <CardContent>
             {loadingBrokers ? (
-              <div className="text-center py-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
-                <p className="text-gray-600">Loading brokers...</p>
-              </div>
+              <LoadingPanel message="Loading brokers..." />
             ) : filteredBrokers.length === 0 ? (
               <div className="text-center py-8 text-gray-500">
                 <p>No brokers found</p>

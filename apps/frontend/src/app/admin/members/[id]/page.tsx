@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { SidebarLayout } from '@/components/layout/sidebar-layout';
+import { InlinePageLoading } from '@/components/layout/page-loading';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, FileText, CreditCard, Activity, Trash2 } from 'lucide-react';
@@ -152,12 +153,7 @@ export default function MemberDetailPage() {
   if (loading) {
     return (
       <SidebarLayout>
-        <div className="flex items-center justify-center h-96">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-            <p className="text-gray-600">Loading member details...</p>
-          </div>
-        </div>
+        <InlinePageLoading title="Member details" message="Loading member details..." />
       </SidebarLayout>
     );
   }
@@ -658,7 +654,7 @@ export default function MemberDetailPage() {
                   >
                     {isDeleting ? (
                       <>
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                        <span className="kv-action-spinner mr-2" aria-hidden="true" />
                         Deleting...
                       </>
                     ) : (

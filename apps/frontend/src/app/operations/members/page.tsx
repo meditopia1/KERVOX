@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { SidebarLayout } from '@/components/layout/sidebar-layout';
+import { InlinePageLoading, LoadingPanel } from '@/components/layout/page-loading';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -142,12 +143,7 @@ export default function OperationsMembersPage() {
   if (authLoading) {
     return (
       <SidebarLayout>
-        <div className="flex items-center justify-center h-96">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-4"></div>
-            <p className="text-gray-600 text-sm">Loading members...</p>
-          </div>
-        </div>
+        <InlinePageLoading title="Members" message="Loading members..." />
       </SidebarLayout>
     );
   }
@@ -433,8 +429,7 @@ export default function OperationsMembersPage() {
                   {dataLoading ? (
                     <tr>
                       <td colSpan={8} className="text-center py-12">
-                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600 mx-auto mb-2"></div>
-                        <p className="text-gray-600 text-sm">Searching members...</p>
+                        <LoadingPanel message="Searching members..." />
                       </td>
                     </tr>
                   ) : !hasSearched ? (

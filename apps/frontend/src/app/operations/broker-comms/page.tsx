@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { SidebarLayout } from '@/components/layout/sidebar-layout';
+import { LoadingPanel } from '@/components/layout/page-loading';
 import { authFetch } from '@/lib/auth-fetch';
 
 type BrokerStatus = 'active' | 'inactive' | 'pending' | 'suspended' | string;
@@ -164,10 +165,7 @@ export default function BrokerCommunicationsPage() {
         </div>
 
         {loading ? (
-          <div className="rounded-lg border bg-white p-12 text-center shadow-sm">
-            <div className="mx-auto mb-3 h-8 w-8 animate-spin rounded-full border-b-2 border-blue-600" />
-            <p className="text-gray-600">Loading brokers...</p>
-          </div>
+          <LoadingPanel message="Loading brokers..." />
         ) : error ? (
           <div className="rounded-lg border border-red-200 bg-red-50 p-6 text-red-700 shadow-sm">
             {error}

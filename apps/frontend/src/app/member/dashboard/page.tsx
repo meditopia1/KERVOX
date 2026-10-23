@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { InlinePageLoading, LoadingPanel } from '@/components/layout/page-loading';
 
 interface MemberData {
   id: string;
@@ -156,12 +157,7 @@ export default function MemberDashboardPage() {
 
   if (loadingData) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading your dashboard...</p>
-        </div>
-      </div>
+      <div className="p-8"><InlinePageLoading title="Member dashboard" message="Loading your dashboard..." /></div>
     );
   }
 
@@ -406,9 +402,7 @@ export default function MemberDashboardPage() {
           </DialogHeader>
 
           {loadingBenefits ? (
-            <div className="flex items-center justify-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-            </div>
+            <LoadingPanel message="Loading plan benefits..." />
           ) : planBenefits.length > 0 ? (
             <div className="space-y-4 mt-4">
               {planBenefits.map((benefit) => {

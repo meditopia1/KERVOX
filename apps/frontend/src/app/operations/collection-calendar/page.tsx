@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { SidebarLayout } from '@/components/layout/sidebar-layout';
+import { InlinePageLoading } from '@/components/layout/page-loading';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/components/ui/toast';
@@ -239,9 +240,7 @@ export default function CollectionCalendarPage() {
   if (loading) {
     return (
       <SidebarLayout>
-        <div className="flex items-center justify-center min-h-screen">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-        </div>
+        <InlinePageLoading title="Collection calendar" message="Loading collection dates..." />
       </SidebarLayout>
     );
   }

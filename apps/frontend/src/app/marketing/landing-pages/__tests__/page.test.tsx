@@ -49,6 +49,11 @@ describe('marketing landing pages workspace', () => {
     expect(await screen.findByText('KERVOX Server Marketplace')).toBeTruthy();
     expect(screen.getByText('Connected operations')).toBeTruthy();
     expect(screen.getByText('/lp/server-marketplace')).toBeTruthy();
+    const showcaseLink = screen.getByRole('link', { name: 'View original page' });
+    expect(showcaseLink.getAttribute('href')).toBe('/lp/summer-health-2026');
+    expect(screen.getByRole('region', { name: 'Client landing page' }).compareDocumentPosition(
+      screen.getByRole('region', { name: 'Campaign funnel' })
+    ) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     expect(screen.getByRole('button', { name: 'New Landing Page' })).toBeTruthy();
     expect((screen.getByRole('button', { name: 'Open KER01 Funnel' }) as HTMLButtonElement).disabled).toBe(false);
     expect(screen.getByText('KER01 Infrastructure Funnel')).toBeTruthy();

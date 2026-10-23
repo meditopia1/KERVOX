@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { useAuth } from '@/contexts/auth-context';
 import { SidebarLayout } from '@/components/layout/sidebar-layout';
+import { InlinePageLoading } from '@/components/layout/page-loading';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Download, CheckCircle, XCircle, Clock, FileText, User, Building2, Calendar, DollarSign } from 'lucide-react';
@@ -154,12 +155,7 @@ export default function BatchDetailsPage() {
   if (loading || loadingBatch) {
     return (
       <SidebarLayout>
-        <div className="flex items-center justify-center h-96">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-4"></div>
-            <p className="text-gray-600">Loading batch details...</p>
-          </div>
-        </div>
+        <InlinePageLoading title="Payment batch" message="Loading batch details..." />
       </SidebarLayout>
     );
   }

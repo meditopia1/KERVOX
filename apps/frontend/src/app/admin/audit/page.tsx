@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { SidebarLayout } from '@/components/layout/sidebar-layout';
+import { LoadingPanel } from '@/components/layout/page-loading';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -222,10 +223,7 @@ export default function AdminAuditPage() {
             )}
 
             {loading ? (
-              <div className="py-12 flex flex-col items-center justify-center text-gray-600">
-                <div className="h-8 w-8 animate-spin rounded-full border-2 border-gray-300 border-t-blue-600" />
-                <p className="mt-3 text-sm">Loading audit events...</p>
-              </div>
+              <LoadingPanel message="Loading audit events..." />
             ) : events.length === 0 ? (
               <div className="py-12 text-center text-gray-500">No audit events found</div>
             ) : (

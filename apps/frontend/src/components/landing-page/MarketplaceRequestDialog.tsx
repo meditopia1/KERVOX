@@ -3,7 +3,7 @@
 import { FormEvent, useEffect, useState } from 'react';
 import * as Dialog from '@radix-ui/react-dialog';
 import { motion, useReducedMotion } from 'framer-motion';
-import { ArrowRight, Check, Loader2, X } from 'lucide-react';
+import { ArrowRight, Check, X } from 'lucide-react';
 
 type ProductSelection = { name: string; category: string; condition: 'new' | 'refurbished'; quantity: number };
 
@@ -112,7 +112,7 @@ export function MarketplaceRequestDialog({ mode, product, onClose }: {
                       <div className="absolute -left-[10000px]" aria-hidden="true"><label>Website<input name="website" tabIndex={-1} autoComplete="off" /></label></div>
                       {error && <p role="alert" className="rounded-lg border border-[#f1c9bd] bg-[#fff2ed] px-4 py-3 text-sm text-[#9b3b2b]">{error}</p>}
                       <button type="submit" disabled={busy} className="flex min-h-12 w-full items-center justify-center gap-2 rounded-lg bg-[#a64c34] px-5 text-sm font-semibold text-white shadow-[0_10px_24px_rgba(166,76,52,.2)] transition-all hover:-translate-y-0.5 hover:bg-[#873b29] disabled:cursor-wait disabled:opacity-70 motion-reduce:transform-none">
-                        {busy ? <><Loader2 className="h-4 w-4 animate-spin" /> Saving request…</> : <>Submit {mode === 'buy' ? 'inquiry' : 'listing request'} <ArrowRight className="h-4 w-4" /></>}
+                        {busy ? <><span className="kv-action-spinner" aria-hidden="true" /> Saving request…</> : <>Submit {mode === 'buy' ? 'inquiry' : 'listing request'} <ArrowRight className="h-4 w-4" /></>}
                       </button>
                     </form>
                   )}

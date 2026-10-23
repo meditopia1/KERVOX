@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/auth-context';
 import { SidebarLayout } from '@/components/layout/sidebar-layout';
+import { InlinePageLoading } from '@/components/layout/page-loading';
 
 export default function OperationsCallCentrePage() {
   const router = useRouter();
@@ -24,11 +25,7 @@ export default function OperationsCallCentrePage() {
   if (loading) {
     return (
       <SidebarLayout>
-        <div className="flex items-center justify-center h-96">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          </div>
-        </div>
+        <InlinePageLoading title="Call centre" message="Opening call centre..." />
       </SidebarLayout>
     );
   }
@@ -39,11 +36,7 @@ export default function OperationsCallCentrePage() {
 
   return (
     <SidebarLayout>
-      <div className="flex items-center justify-center h-96">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-        </div>
-      </div>
+      <InlinePageLoading title="Call centre" message="Taking you to the call centre..." />
     </SidebarLayout>
   );
 }

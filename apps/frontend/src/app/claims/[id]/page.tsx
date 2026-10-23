@@ -8,6 +8,7 @@ import {
   ArrowLeft, FileText, User, Building2, Calendar, DollarSign, 
   Clock, CheckCircle, XCircle, AlertTriangle, Download, Eye 
 } from 'lucide-react';
+import { PageLoading } from '@/components/layout/page-loading';
 
 interface ClaimDetails {
   claim: any;
@@ -72,14 +73,7 @@ export default function ClaimDetailsPage() {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading claim details...</p>
-        </div>
-      </div>
-    );
+    return <PageLoading message="Loading claim details..." />;
   }
 
   if (!details) return null;

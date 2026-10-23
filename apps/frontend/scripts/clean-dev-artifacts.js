@@ -3,7 +3,7 @@ const path = require('path');
 
 const projectRoot = path.resolve(__dirname, '..');
 const targets = [
-  path.join(projectRoot, '.next'),
+  path.join(projectRoot, '.next-dev'),
   path.join(projectRoot, 'tsconfig.tsbuildinfo'),
 ];
 

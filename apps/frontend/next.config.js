@@ -8,6 +8,9 @@ dotenv.config({ path: path.resolve(__dirname, '../..', '.env.local'), override: 
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Keep the dev server's assets separate from production builds. Running
+  // `next build` must not invalidate CSS served by a running `next dev`.
+  distDir: process.env.NODE_ENV === 'development' ? '.next-dev' : '.next',
   reactStrictMode: true,
   swcMinify: true,
   eslint: {

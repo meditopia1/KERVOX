@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { OriginalMarketingLandingPage } from '../OriginalMarketingLandingPage';
 
 jest.mock('next/link', () => ({
@@ -11,6 +11,34 @@ jest.mock('next/image', () => ({
 }));
 
 describe('server marketplace landing page', () => {
+  it.each(['marketplace', 'funnel'] as const)('replays section reveals when scrolling back through the %s', (variant) => {
+    const originalObserver = window.IntersectionObserver;
+    let notify: IntersectionObserverCallback | undefined;
+    class TestObserver {
+      constructor(callback: IntersectionObserverCallback) { notify = callback; }
+      observe() {}
+      disconnect() {}
+    }
+    Object.defineProperty(window, 'IntersectionObserver', { configurable: true, value: TestObserver });
+    try {
+      const { container } = render(<OriginalMarketingLandingPage content={{}} variant={variant} />);
+      const section = container.querySelector('.exp-products-head');
+      expect(section).toBeTruthy();
+      expect(container.querySelector('.kervox-experience')?.classList.contains('scroll-ready')).toBe(true);
+      const report = (isIntersecting: boolean) => act(() => {
+        notify?.([{ target: section, isIntersecting } as IntersectionObserverEntry], {} as IntersectionObserver);
+      });
+      report(true);
+      expect(section?.classList.contains('is-visible')).toBe(true);
+      report(false);
+      expect(section?.classList.contains('is-visible')).toBe(false);
+      report(true);
+      expect(section?.classList.contains('is-visible')).toBe(true);
+    } finally {
+      Object.defineProperty(window, 'IntersectionObserver', { configurable: true, value: originalObserver });
+    }
+  });
+
   it('replaces health plans with server products and warm product details', () => {
     render(<OriginalMarketingLandingPage content={{ sections: [{ type: 'plan-slider' }] }} />);
 

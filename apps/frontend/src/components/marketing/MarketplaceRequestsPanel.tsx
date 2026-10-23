@@ -1,8 +1,9 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import { ArrowUpRight, Inbox, Loader2, RefreshCw } from 'lucide-react';
+import { ArrowUpRight, Inbox, RefreshCw } from 'lucide-react';
 import { authFetch } from '@/lib/auth-fetch';
+import { LoadingPanel } from '@/components/layout/page-loading';
 
 type MarketplaceRequest = {
   id: string;
@@ -71,7 +72,7 @@ export function MarketplaceRequestsPanel() {
         <button type="button" onClick={() => void load()} disabled={loading} className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-[#ded4ca] px-3 text-sm font-semibold text-[#554d45] hover:bg-[#f8f3ed] disabled:opacity-50"><RefreshCw className="h-4 w-4" /> Refresh</button>
       </div>
       {error && <p role="alert" className="m-5 rounded-lg border border-[#efc9ba] bg-[#fff2ed] px-4 py-3 text-sm text-[#923e2c]">{error}</p>}
-      {loading ? <p role="status" className="flex items-center gap-2 px-6 py-8 text-sm text-[#70675e]"><Loader2 className="h-4 w-4 animate-spin" /> Loading requests…</p> : items.length === 0 ? <p className="px-6 py-10 text-sm text-[#81796e]">No marketplace requests yet.</p> : (
+      {loading ? <LoadingPanel message="Loading marketplace requests..." /> : items.length === 0 ? <p className="px-6 py-10 text-sm text-[#81796e]">No marketplace requests yet.</p> : (
         <div className="divide-y divide-[#eee8df]">
           {items.map((item) => (
             <article key={item.id} className="grid gap-4 px-5 py-5 sm:px-6 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-start">

@@ -17,6 +17,7 @@ This is an implementation tracker, not a claim that every route has passed brows
 | Member | `/member/dashboard`, `/member/claims`, `/member/settings` | Pass | Pending | Pending | Existing member and medical workflows remain accessible |
 | Onboarding | `/onboarding/applications`, `/onboarding/settings` | Pass | Pending | Pending | Dead stats/calls links removed; mobile drawer and persistent collapse added |
 | Public marketplace | `/lp/server-marketplace` and the legacy alias | Existing route retained | Pending | Curated public brand; verify logos | Inquiry/listing flow must remain functional |
+| Summer Health client showcase | `/lp/summer-health-2026` | Restored from original page composition | Pending | Original client presentation | Cover selector, plan carousel, and signup need client walkthrough |
 | KER01 funnel | `/ker01` | Public funnel | Pending | Product enquiry and seller listing | Active |
 
 ## Completed in this slice

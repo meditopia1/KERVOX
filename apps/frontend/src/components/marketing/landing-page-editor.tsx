@@ -2,7 +2,7 @@
 
 import { useEffect, useState, type FormEvent } from 'react';
 import * as DialogPrimitive from '@radix-ui/react-dialog';
-import { ArrowUpRight, Eye, Loader2, X } from 'lucide-react';
+import { ArrowUpRight, Eye, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -191,7 +191,7 @@ export function LandingPageEditor({ open, mode, page, onOpenChange, onSaved }: L
             <div className="flex flex-wrap items-center justify-end gap-3 border-t border-[#eae3da] pt-5">
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={saving}>Cancel</Button>
               <Button type="submit" disabled={saving}>
-                {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden="true" />}
+                {saving && <span className="kv-action-spinner mr-2" aria-hidden="true" />}
                 {mode === 'edit' ? 'Save changes' : form.status === 'active' ? 'Create & publish' : 'Create draft'}
               </Button>
             </div>

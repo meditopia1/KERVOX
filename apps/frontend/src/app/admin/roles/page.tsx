@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { SidebarLayout } from '@/components/layout/sidebar-layout';
+import { LoadingPanel } from '@/components/layout/page-loading';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { authFetch } from '@/lib/auth-fetch';
@@ -116,10 +117,7 @@ export default function AdminRolesPage() {
           </CardHeader>
           <CardContent>
             {loading ? (
-              <div className="py-10 flex flex-col items-center justify-center text-gray-600">
-                <div className="h-8 w-8 animate-spin rounded-full border-2 border-gray-300 border-t-blue-600" />
-                <p className="mt-3 text-sm">Loading roles...</p>
-              </div>
+              <LoadingPanel message="Loading roles..." />
             ) : roles.length === 0 ? (
               <div className="py-10 text-center text-gray-500">No roles found</div>
             ) : (

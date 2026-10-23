@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/auth-context';
 import { SidebarLayout } from '@/components/layout/sidebar-layout';
+import { InlinePageLoading, LoadingPanel } from '@/components/layout/page-loading';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -136,12 +137,7 @@ export default function FraudCasesPage() {
   if (loading) {
     return (
       <SidebarLayout>
-        <div className="flex items-center justify-center h-96">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-4"></div>
-            <p className="text-gray-600">Loading...</p>
-          </div>
-        </div>
+        <InlinePageLoading title="Fraud review" message="Loading cases..." />
       </SidebarLayout>
     );
   }
@@ -265,10 +261,7 @@ export default function FraudCasesPage() {
           </CardHeader>
           <CardContent>
             {loadingCases ? (
-              <div className="text-center py-8">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-4"></div>
-                <p className="text-gray-600">Loading cases...</p>
-              </div>
+              <LoadingPanel message="Loading cases..." />
             ) : filteredCases.length === 0 ? (
               <div className="text-center py-8 text-gray-500">
                 <Shield className="w-12 h-12 mx-auto mb-2 opacity-50" />

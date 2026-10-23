@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { FileText, Clock, CheckCircle, XCircle, AlertTriangle, DollarSign, Calendar } from 'lucide-react';
+import { InlinePageLoading } from '@/components/layout/page-loading';
 
 interface Claim {
   id: string;
@@ -104,12 +105,7 @@ export default function MemberClaimsPage() {
   if (loading) {
     return (
       <div className="p-8">
-        <div className="flex items-center justify-center h-96">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-4"></div>
-            <p className="text-gray-600">Loading your claims...</p>
-          </div>
-        </div>
+        <InlinePageLoading title="Your claims" message="Loading your claims..." />
       </div>
     );
   }

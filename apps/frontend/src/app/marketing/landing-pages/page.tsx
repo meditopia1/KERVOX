@@ -1,8 +1,9 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { AlertCircle, ArrowUpRight, BarChart3, Copy, Eye, FileText, LayoutTemplate, Loader2, Pencil, Plus, Search, TrendingUp, Users } from 'lucide-react';
+import { AlertCircle, ArrowUpRight, BarChart3, Copy, Eye, FileText, LayoutTemplate, Pencil, Plus, Search, TrendingUp, Users } from 'lucide-react';
 import { SidebarLayout } from '@/components/layout/sidebar-layout';
+import { LoadingPanel } from '@/components/layout/page-loading';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { LandingPageEditor } from '@/components/marketing/landing-page-editor';
@@ -24,6 +25,11 @@ const filters: { value: PageFilter; label: string }[] = [
 ];
 const marketplaceName = 'KERVOX Server Marketplace';
 const marketplaceDescription = 'Browse server products and connect with buyers or sellers.';
+const clientShowcase = {
+  name: 'Summer Health 2026',
+  href: '/lp/summer-health-2026',
+  description: 'The original client presentation, including its cover selector, plans, and signup flow.',
+};
 const ker01Funnel = {
   name: 'KER01',
   slug: 'ker01',
@@ -154,10 +160,7 @@ export default function LandingPagesPage() {
         {notice && <p role="status" className="rounded-xl border border-[#e2cdbd] bg-[#fcf2e9] px-4 py-3 text-sm font-medium text-[#783d2d]">{notice}</p>}
 
         {loading ? (
-          <div role="status" className="flex min-h-80 flex-col items-center justify-center rounded-xl border border-[#e6e0d7] bg-[#fffefa] text-center">
-            <Loader2 className="h-7 w-7 animate-spin text-[#a64c34] motion-reduce:animate-none" aria-hidden="true" />
-            <p className="mt-4 text-sm font-medium text-[#6d675f]">Loading landing pages...</p>
-          </div>
+          <LoadingPanel message="Loading landing pages..." className="min-h-80" />
         ) : error ? (
           <div role="alert" className="flex min-h-80 flex-col items-center justify-center rounded-xl border border-[#e6e0d7] bg-[#fffefa] px-6 text-center">
             <AlertCircle className="h-9 w-9 text-[#a64c34]" aria-hidden="true" />
@@ -171,10 +174,30 @@ export default function LandingPagesPage() {
         ) : (
           <>
             <section aria-label="Page overview" className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-              <SummaryMetric label="Total pages" value={String(landingPages.length)} note={`${activeCount} published`} icon={FileText} />
+              <SummaryMetric label="Total pages" value={String(landingPages.length + 1)} note={`${activeCount + 1} published`} icon={FileText} />
               <SummaryMetric label="Total visits" value={hasAnalytics ? totalVisits.toLocaleString() : '—'} note={hasAnalytics ? 'Recorded visits' : 'Analytics not connected'} icon={Eye} />
               <SummaryMetric label="Total leads" value={hasAnalytics ? totalLeads.toLocaleString() : '—'} note={hasAnalytics ? 'Recorded leads' : 'Analytics not connected'} icon={Users} />
               <SummaryMetric label="Avg. conversion" value={hasAnalytics ? `${avgConversion.toFixed(1)}%` : '—'} note={hasAnalytics ? 'Average reported rate' : 'Analytics not connected'} icon={TrendingUp} />
+            </section>
+
+            <section aria-labelledby="client-showcase-heading" className="overflow-hidden rounded-xl border border-[#e6e0d7] bg-[#fffefa] shadow-[0_10px_32px_rgba(49,37,28,0.035)]">
+              <div className="border-b border-[#eae3da] px-5 py-5 sm:px-6">
+                <p className="kervox-eyebrow">Client showcase</p>
+                <h2 id="client-showcase-heading" className="mt-1 text-lg font-semibold text-[#2b2926]">Client landing page</h2>
+                <p className="mt-1 text-sm text-[#81796e]">The original Summer Health 2026 presentation is available to show clients.</p>
+              </div>
+              <article className="flex flex-col gap-5 px-5 py-5 sm:px-6 xl:flex-row xl:items-center xl:justify-between">
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-[#ead9cb] bg-[#faf0e9] text-[#a64c34]"><FileText className="h-5 w-5" aria-hidden="true" /></span>
+                    <h3 className="text-base font-semibold text-[#2b2926] sm:text-lg">{clientShowcase.name}</h3>
+                    <span className="rounded-full border border-[#d8e5d9] bg-[#e8f1e7] px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.06em] text-[#3f6650]">Published</span>
+                  </div>
+                  <p className="mt-3 break-all text-xs font-medium text-[#a64c34]">{clientShowcase.href}</p>
+                  <p className="mt-2 max-w-2xl text-sm leading-6 text-[#6d675f]">{clientShowcase.description}</p>
+                </div>
+                <a href={clientShowcase.href} target="_blank" rel="noopener noreferrer" className="inline-flex h-9 shrink-0 items-center justify-center gap-1.5 rounded-lg border border-[#e6e0d7] bg-[#fffefa] px-4 text-sm font-semibold text-[#2b2926] transition-colors hover:border-[#a64c34] hover:bg-[#faf0e9] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#a64c34]">View original page <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" /></a>
+              </article>
             </section>
 
             <section aria-labelledby="funnels-heading" className="overflow-hidden rounded-xl border border-[#e6e0d7] bg-[#fffefa] shadow-[0_10px_32px_rgba(49,37,28,0.035)]">
