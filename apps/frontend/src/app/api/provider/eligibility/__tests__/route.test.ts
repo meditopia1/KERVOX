@@ -13,7 +13,7 @@ function queryReturning(result: { data: unknown; error: null }) {
     select: () => query,
     eq: () => query,
     maybeSingle: async () => result,
-    then: (resolve: (value: unknown) => unknown) => Promise.resolve(result).then(resolve),
+    then: (resolve: (value: typeof result) => unknown) => Promise.resolve(result).then(resolve),
   };
   return query;
 }

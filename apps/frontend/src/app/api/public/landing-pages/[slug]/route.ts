@@ -12,7 +12,7 @@ export async function GET(
     
     const { data: page, error } = await supabase
       .from('landing_pages')
-      .select('*')
+      .select('id,name,slug,title,description,template,content,status')
       .eq('slug', (await params).slug)
       .eq('status', 'active')
       .single()
