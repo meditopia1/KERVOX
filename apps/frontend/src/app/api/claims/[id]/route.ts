@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { requireAnyRole } from '@/lib/auth-server';
+import { signStoredFileUrl } from '@/lib/private-storage';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -94,6 +95,10 @@ export async function GET(
           .single()
       : { data: null as any };
 
+    const viewableDocuments = await Promise.all((claimDocuments || []).map(async document => ({
+      ...document,
+      view_url: await signStoredFileUrl(document.document_url, 'claims'),
+    })));
     const normalizedClaim = {
       ...claim,
       benefit_type: benefitType,
@@ -110,7 +115,7 @@ export async function GET(
             phone: provider.phone,
           }
         : null,
-      claim_documents: claimDocuments || [],
+      claim_documents: viewableDocuments,
     };
 
     return NextResponse.json({
@@ -118,7 +123,7 @@ export async function GET(
       claimLines: claimLines || [],
       auditTrail: auditTrail || [],
       audit_trail: auditTrail || [],
-      documents: claimDocuments || [],
+      documents: viewableDocuments,
       paymentInfo,
       benefitUsage,
     });

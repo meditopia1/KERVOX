@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { generateNextMemberNumber } from '@/lib/generate-member-number'
 import { requireAnyRole } from '@/lib/auth-server'
+import { signApplicationFiles } from '@/lib/private-storage'
 
 export const dynamic = 'force-dynamic'
 
@@ -38,10 +39,10 @@ export async function GET(request: NextRequest) {
           .select('*')
           .eq('application_id', app.id)
 
-        return {
+        return signApplicationFiles({
           ...app,
           dependents: dependents || []
-        }
+        })
       })
     )
 
@@ -144,7 +145,7 @@ export async function PATCH(request: NextRequest) {
       console.log(`✅ Generated member number: ${memberNumber}`)
 
       // For all members, use the selected plan from application and fetch product ID
-      let finalPlanName = application.plan_name
+      const finalPlanName = application.plan_name
       let finalPlanId = null
 
       if (finalPlanName) {

@@ -378,7 +378,7 @@ export default function ClaimDetailsPage() {
                         </div>
                         <div className="flex gap-2">
                           <a
-                            href={doc.document_url}
+                            href={doc.view_url || doc.document_url}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="p-2 hover:bg-gray-100 rounded"
@@ -386,7 +386,7 @@ export default function ClaimDetailsPage() {
                             <Eye className="w-4 h-4 text-gray-600" />
                           </a>
                           <a
-                            href={doc.document_url}
+                            href={doc.view_url || doc.document_url}
                             download
                             className="p-2 hover:bg-gray-100 rounded"
                           >

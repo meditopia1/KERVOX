@@ -25,6 +25,7 @@ import {
   uploadVoiceRecording,
   uploadSignature,
   generateTempApplicationNumber,
+  getUploadPreviewUrl,
 } from '@/lib/storage'
 
 interface Props {
@@ -38,6 +39,7 @@ export default function Step6ReviewTermsSubmit({ data, updateData, prevStep, goT
   const router = useRouter()
   const [submitting, setSubmitting] = useState(false)
   const [voiceRecorded, setVoiceRecorded] = useState(!!data.voiceRecordingUrl)
+  const [voicePreviewUrl, setVoicePreviewUrl] = useState<string | null>(null)
   const [recording, setRecording] = useState(false)
   const [signatureSaved, setSignatureSaved] = useState(!!data.signatureUrl)
   const [termsAccepted, setTermsAccepted] = useState(data.termsAccepted || false)
@@ -82,6 +84,7 @@ export default function Step6ReviewTermsSubmit({ data, updateData, prevStep, goT
       mediaRecorder.onstop = () => {
         const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' })
         const audioUrl = URL.createObjectURL(audioBlob)
+        setVoicePreviewUrl(audioUrl)
         
         // Store blob temporarily for playback
         updateData({ voiceRecordingUrl: audioUrl })
@@ -561,7 +564,7 @@ export default function Step6ReviewTermsSubmit({ data, updateData, prevStep, goT
                     <button
                       onClick={() => {
                         if (data.voiceRecordingUrl) {
-                          const audio = new Audio(data.voiceRecordingUrl)
+                          const audio = new Audio(voicePreviewUrl || getUploadPreviewUrl(data.voiceRecordingUrl) || data.voiceRecordingUrl)
                           audio.play()
                         }
                       }}
@@ -572,6 +575,8 @@ export default function Step6ReviewTermsSubmit({ data, updateData, prevStep, goT
                     <button
                       onClick={() => {
                         updateData({ voiceRecordingUrl: undefined })
+                        if (voicePreviewUrl) URL.revokeObjectURL(voicePreviewUrl)
+                        setVoicePreviewUrl(null)
                         setVoiceRecorded(false)
                       }}
                       className="px-2 py-0.5 text-xs bg-red-600 text-white rounded hover:bg-red-700"

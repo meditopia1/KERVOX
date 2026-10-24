@@ -30,6 +30,7 @@ interface Claim {
   is_pmb: boolean;
   claim_data: Record<string, any>;
   document_urls: string[];
+  document_view_urls?: Array<string | null>;
   claim_source: string;
 }
 
@@ -450,7 +451,7 @@ export default function ClaimsQueuePage() {
                                 <div className="flex gap-1 flex-shrink-0">
                                   {(isPDF || isImage) && (
                                     <a 
-                                      href={url} 
+                                      href={selectedClaim.document_view_urls?.[idx] || url}
                                       target="_blank" 
                                       rel="noopener noreferrer"
                                       className="p-1 hover:bg-gray-200 rounded"
@@ -460,7 +461,7 @@ export default function ClaimsQueuePage() {
                                     </a>
                                   )}
                                   <a 
-                                    href={url} 
+                                    href={selectedClaim.document_view_urls?.[idx] || url}
                                     download 
                                     className="p-1 hover:bg-gray-200 rounded"
                                     title="Download"

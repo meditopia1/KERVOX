@@ -27,6 +27,7 @@ interface DependantRequest {
   status: string
   verification_notes: string | null
   call_recording_url: string | null
+  call_recording_view_url?: string | null
   verified_at: string | null
   verified_by: string | null
 }
@@ -42,6 +43,7 @@ export default function DependantVerificationForm({ request, userRole, onClose, 
   const [verificationNotes, setVerificationNotes] = useState(request.verification_notes || '')
   const [recording, setRecording] = useState(false)
   const [recordingUrl, setRecordingUrl] = useState(request.call_recording_url || '')
+  const [recordingPreviewUrl, setRecordingPreviewUrl] = useState<string | null>(request.call_recording_view_url || null)
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null)
   const [recordingTime, setRecordingTime] = useState(0)
   const [uploading, setUploading] = useState(false)
@@ -109,6 +111,7 @@ export default function DependantVerificationForm({ request, userRole, onClose, 
 
       const data = await response.json()
       setRecordingUrl(data.url)
+      setRecordingPreviewUrl(data.previewUrl || null)
       alert('Recording uploaded successfully')
     } catch (error) {
       console.error('Upload error:', error)
@@ -294,7 +297,7 @@ export default function DependantVerificationForm({ request, userRole, onClose, 
                     controls 
                     className="w-full" 
                     preload="metadata"
-                    src={request.call_recording_url}
+                    src={request.call_recording_view_url || request.call_recording_url}
                   >
                     Your browser does not support the audio element.
                   </audio>
@@ -302,7 +305,7 @@ export default function DependantVerificationForm({ request, userRole, onClose, 
                     size="sm"
                     variant="outline"
                     className="mt-2"
-                    onClick={() => openSafeDocumentUrl(request.call_recording_url)}
+                    onClick={() => openSafeDocumentUrl(request.call_recording_view_url || request.call_recording_url)}
                   >
                     <Play className="w-3 h-3 mr-1" />
                     Open Recording in New Tab
@@ -562,7 +565,7 @@ export default function DependantVerificationForm({ request, userRole, onClose, 
                 <p className="text-sm text-green-800 mb-2">
                   ✓ Call recording uploaded successfully
                 </p>
-                <audio controls className="w-full" src={recordingUrl}>
+                <audio controls className="w-full" src={recordingPreviewUrl || recordingUrl}>
                   Your browser does not support the audio element.
                 </audio>
                 <Button

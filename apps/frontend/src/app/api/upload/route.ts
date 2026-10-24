@@ -104,16 +104,22 @@ export async function POST(request: NextRequest) {
     const { data, error } = await supabase.storage.from(bucket).upload(path, buffer, {
       contentType: mime,
       upsert: false,
+      cacheControl: '60',
     });
     if (error) {
       console.error('Supabase upload error:', error);
       return NextResponse.json({ error: 'Upload failed' }, { status: 500 });
     }
 
-    // Existing consumers persist these URLs. Bucket privacy and signed-access
-    // migration must be coordinated with those consumers before changing them.
     const { data: { publicUrl } } = supabase.storage.from(bucket).getPublicUrl(path);
-    return NextResponse.json({ success: true, url: publicUrl, path: data.path }, {
+    // The stable URL remains the database identifier; the temporary URL is for
+    // immediate preview only and must never be written to application records.
+    const { data: preview, error: previewError } = await supabase.storage.from(bucket).createSignedUrl(path, 3600);
+    if (previewError || !preview?.signedUrl) {
+      console.error('Supabase preview error:', previewError);
+      return NextResponse.json({ error: 'Upload preview failed' }, { status: 500 });
+    }
+    return NextResponse.json({ success: true, url: publicUrl, previewUrl: preview.signedUrl, path: data.path }, {
       headers: { 'Cache-Control': 'no-store' },
     });
   } catch (error) {

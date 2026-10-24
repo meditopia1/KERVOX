@@ -71,6 +71,7 @@ interface Application {
   medical_history: any
   marketing_consent: boolean
   review_notes: string
+  review_recording_view_url?: string | null
   rejection_reason: string
   voice_recording_url?: string
   terms_accepted_at?: string
@@ -1008,10 +1009,7 @@ export default function AdminApplicationsPage() {
                         {/* Call Recording */}
                         {selectedApplication.review_notes.includes('Call Recording:') && (() => {
                           const recordingUrl = selectedApplication.review_notes.split('Call Recording: ')[1]?.split('\n')[0]?.trim();
-                          // Create a signed URL for Supabase storage
-                          const publicUrl = recordingUrl?.includes('supabase.co/storage') 
-                            ? recordingUrl.replace('/object/public/', '/object/sign/') 
-                            : recordingUrl;
+                          const viewUrl = selectedApplication.review_recording_view_url || recordingUrl;
                           
                           return (
                             <div className="mt-3">
@@ -1022,10 +1020,9 @@ export default function AdminApplicationsPage() {
                                     controls 
                                     className="w-full" 
                                     preload="metadata"
-                                    src={recordingUrl}
+                                    src={viewUrl}
                                     onError={(e) => {
                                       console.error('Audio load error:', e);
-                                      console.log('Recording URL:', recordingUrl);
                                     }}
                                   >
                                     Your browser does not support the audio element.
@@ -1034,7 +1031,7 @@ export default function AdminApplicationsPage() {
                                     size="sm"
                                     variant="outline"
                                     className="mt-2"
-                                    onClick={() => openSafeDocumentUrl(recordingUrl)}
+                                    onClick={() => openSafeDocumentUrl(viewUrl)}
                                   >
                                     <Play className="w-3 h-3 mr-1" />
                                     Open Recording in New Tab

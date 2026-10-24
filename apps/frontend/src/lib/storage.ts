@@ -10,6 +10,11 @@
 import { ApplicationData } from '@/types/application'
 
 const BUCKET_NAME = 'applications'
+const uploadPreviews = new Map<string, string>()
+
+export function getUploadPreviewUrl(storedUrl: string | undefined): string | undefined {
+  return storedUrl ? uploadPreviews.get(storedUrl) : undefined
+}
 
 /**
  * Upload a blob to Supabase Storage
@@ -51,6 +56,7 @@ export async function uploadToStorage(
     throw new Error(`Failed to upload file: ${message}`)
   }
 
+  if (result.previewUrl) uploadPreviews.set(result.url, result.previewUrl)
   return result.url
 }
 

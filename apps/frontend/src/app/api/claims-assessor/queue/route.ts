@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAuthenticatedSupabaseClient, requireAnyRole } from '@/lib/auth-server';
+import { signStoredFileUrl } from '@/lib/private-storage';
 
 export async function GET(request: NextRequest) {
   try {
@@ -45,11 +46,12 @@ export async function GET(request: NextRequest) {
     const membersMap = new Map(membersResult.data?.map(m => [m.id, m]) || []);
 
     // Attach related data to claims
-    const enrichedClaims = claims?.map(claim => ({
+    const enrichedClaims = await Promise.all((claims || []).map(async claim => ({
       ...claim,
+      document_view_urls: await Promise.all((claim.document_urls || []).map((url: string) => signStoredFileUrl(url, 'claims'))),
       provider: claim.provider_id ? providersMap.get(claim.provider_id) : null,
       member: claim.member_id ? membersMap.get(claim.member_id) : null
-    })) || [];
+    })));
 
     return NextResponse.json({ claims: enrichedClaims });
   } catch (error) {

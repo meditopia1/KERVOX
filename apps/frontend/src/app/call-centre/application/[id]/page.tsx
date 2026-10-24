@@ -66,6 +66,7 @@ export default function CallCentreApplicationDetailPage() {
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const [uploadedRecordingUrl, setUploadedRecordingUrl] = useState<string | null>(null);
+  const [uploadedRecordingPreviewUrl, setUploadedRecordingPreviewUrl] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
@@ -174,6 +175,7 @@ export default function CallCentreApplicationDetailPage() {
 
       const data = await response.json();
       setUploadedRecordingUrl(data.url);
+      setUploadedRecordingPreviewUrl(data.previewUrl || null);
       alert('Recording uploaded successfully!');
     } catch (error) {
       console.error('Upload error:', error);
@@ -760,7 +762,7 @@ export default function CallCentreApplicationDetailPage() {
                     <Button
                       size="sm"
                       variant="outline"
-                      onClick={() => openSafeDocumentUrl(uploadedRecordingUrl)}
+                      onClick={() => openSafeDocumentUrl(uploadedRecordingPreviewUrl || uploadedRecordingUrl)}
                     >
                       <Play className="w-3 h-3 mr-1" />
                       Listen to Recording

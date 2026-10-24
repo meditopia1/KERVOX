@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
+import { authFetch } from '@/lib/auth-fetch'
 import { openSafeDocumentUrl } from '@/lib/safe-document-url'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -73,13 +74,10 @@ export default function OnboardingApplicationsPage() {
 
   const fetchApplications = async () => {
     try {
-      const { data, error } = await supabase
-        .from('applications')
-        .select('*')
-        .order('submitted_at', { ascending: false })
-
-      if (error) throw error
-      setApplications(data || [])
+      const response = await authFetch('/api/onboarding/applications')
+      if (!response.ok) throw new Error('Failed to fetch applications')
+      const data = await response.json()
+      setApplications(data.applications || [])
     } catch (error) {
       console.error('Error fetching applications:', error)
     } finally {

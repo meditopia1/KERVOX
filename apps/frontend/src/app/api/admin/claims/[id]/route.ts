@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { createAuthenticatedSupabaseClient, requireAnyRole } from '@/lib/auth-server';
 import { sendNotification } from '@/lib/notifications';
+import { signStoredFileUrl } from '@/lib/private-storage';
 
 // Initialize Supabase client with service role for admin operations
 const supabaseAdmin = createClient(
@@ -83,11 +84,15 @@ export async function GET(
       .select('*')
       .eq('claim_id', id)
       .order('uploaded_at', { ascending: false });
+    const viewableDocuments = await Promise.all((documents || []).map(async document => ({
+      ...document,
+      view_url: await signStoredFileUrl(document.document_url, 'claims'),
+    })));
 
     return NextResponse.json({
       claim,
       audit_trail: auditTrail || [],
-      documents: documents || []
+      documents: viewableDocuments
     });
 
   } catch (error: any) {
@@ -126,7 +131,7 @@ export async function PATCH(
     }
 
     const previousStatus = currentClaim.status;
-    let updateData: any = {
+    const updateData: any = {
       updated_at: new Date().toISOString()
     };
 

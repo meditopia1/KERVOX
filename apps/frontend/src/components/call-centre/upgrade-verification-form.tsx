@@ -21,6 +21,7 @@ interface UpgradeVerificationFormProps {
     status: string;
     verification_notes?: string;
     call_recording_url?: string;
+    call_recording_view_url?: string;
     verified_at?: string;
     verified_by?: string;
     // Full member details
@@ -80,6 +81,7 @@ export function UpgradeVerificationForm({ upgradeRequest, onVerify, onReject, us
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const [uploadedRecordingUrl, setUploadedRecordingUrl] = useState<string | null>(null);
+  const [uploadedRecordingPreviewUrl, setUploadedRecordingPreviewUrl] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
@@ -152,6 +154,7 @@ export function UpgradeVerificationForm({ upgradeRequest, onVerify, onReject, us
 
       const data = await response.json();
       setUploadedRecordingUrl(data.url);
+      setUploadedRecordingPreviewUrl(data.previewUrl || null);
       
       addToast({
         type: 'success',
@@ -357,7 +360,7 @@ export function UpgradeVerificationForm({ upgradeRequest, onVerify, onReject, us
                     controls 
                     className="w-full" 
                     preload="metadata"
-                    src={upgradeRequest.call_recording_url}
+                    src={upgradeRequest.call_recording_view_url || upgradeRequest.call_recording_url}
                   >
                     Your browser does not support the audio element.
                   </audio>
@@ -365,7 +368,7 @@ export function UpgradeVerificationForm({ upgradeRequest, onVerify, onReject, us
                     size="sm"
                     variant="outline"
                     className="mt-2"
-                    onClick={() => openSafeDocumentUrl(upgradeRequest.call_recording_url)}
+                    onClick={() => openSafeDocumentUrl(upgradeRequest.call_recording_view_url || upgradeRequest.call_recording_url)}
                   >
                     <Play className="w-3 h-3 mr-1" />
                     Open Recording in New Tab
@@ -638,7 +641,7 @@ export function UpgradeVerificationForm({ upgradeRequest, onVerify, onReject, us
               <p className="text-sm text-green-800 mb-2">
                 ✓ Call recording uploaded successfully
               </p>
-              <audio controls className="w-full" src={uploadedRecordingUrl}>
+              <audio controls className="w-full" src={uploadedRecordingPreviewUrl || uploadedRecordingUrl}>
                 Your browser does not support the audio element.
               </audio>
               <Button
