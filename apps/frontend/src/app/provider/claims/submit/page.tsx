@@ -32,6 +32,7 @@ export default function ClaimSubmissionPage() {
   // Member lookup
   const [lookupMode, setLookupMode] = useState<ClaimLookupMode>('member_number');
   const [lookupValue, setLookupValue] = useState('');
+  const [lookupDateOfBirth, setLookupDateOfBirth] = useState('');
   const [lookupMessage, setLookupMessage] = useState('');
   const [lookupStatus, setLookupStatus] = useState('');
   const [selectedMemberId, setSelectedMemberId] = useState('');
@@ -81,6 +82,7 @@ export default function ClaimSubmissionPage() {
 
   const clearMemberLookup = () => {
     setLookupValue('');
+    setLookupDateOfBirth('');
     setLookupMessage('');
     setLookupStatus('');
     setSelectedMemberId('');
@@ -97,6 +99,10 @@ export default function ClaimSubmissionPage() {
       alert(`Please enter a ${lookupMode.replace('_', ' ')}`);
       return;
     }
+    if (lookupMode === 'patient_name' && !lookupDateOfBirth) {
+      alert('Enter the date of birth to verify a name lookup.');
+      return;
+    }
 
     setIsLookingUp(true);
     setLookupMessage('');
@@ -107,7 +113,7 @@ export default function ClaimSubmissionPage() {
         lookupMode === 'member_number'
           ? { member_number: query }
           : lookupMode === 'patient_name'
-            ? { patient_name: query }
+            ? { patient_name: query, date_of_birth: lookupDateOfBirth }
             : { id_number: query };
 
       const response = await authFetch('/api/provider/eligibility', {
@@ -502,6 +508,17 @@ export default function ClaimSubmissionPage() {
                     onChange={(e) => setLookupValue(e.target.value)}
                   />
                 </div>
+                {lookupMode === 'patient_name' && (
+                  <div className="space-y-2">
+                    <label htmlFor="lookupDateOfBirth" className="text-sm font-medium">Date of birth</label>
+                    <Input
+                      id="lookupDateOfBirth"
+                      type="date"
+                      value={lookupDateOfBirth}
+                      onChange={(event) => setLookupDateOfBirth(event.target.value)}
+                    />
+                  </div>
+                )}
                 <div className="flex gap-3">
                   <Button
                     type="button"

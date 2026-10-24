@@ -1,9 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { getAuthenticatedMemberId } from '@/lib/member-session';
+import { getAuthenticatedUser } from '@/lib/auth-server';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
+const isUuid = (value: unknown) => typeof value === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value);
+const isValidYear = (value: unknown) => Number.isInteger(value) && Number(value) >= 2000 && Number(value) <= 2100;
+const isNonnegativeNumber = (value: unknown) => typeof value === 'number' && Number.isFinite(value) && value >= 0 && value <= 1_000_000_000;
+const isNonnegativeCount = (value: unknown) => Number.isInteger(value) && Number(value) >= 0 && Number(value) <= 1_000_000;
 
 /**
  * GET /api/member/benefits/usage
@@ -17,17 +23,15 @@ const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
  */
 export async function GET(request: NextRequest) {
   try {
+    const memberId = await getAuthenticatedMemberId(request);
+    if (!memberId) return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
     const { searchParams } = new URL(request.url);
-    const memberId = searchParams.get('member_id');
+    if (searchParams.get('member_id') && searchParams.get('member_id') !== memberId) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
     const year = searchParams.get('year') || new Date().getFullYear().toString();
     const benefitType = searchParams.get('benefit_type');
-
-    if (!memberId) {
-      return NextResponse.json(
-        { error: 'member_id is required' },
-        { status: 400 }
-      );
-    }
+    if (!/^20\d{2}$/.test(year)) return NextResponse.json({ error: 'Invalid year' }, { status: 400 });
 
     // Build query
     let query = supabaseAdmin
@@ -76,6 +80,11 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
+    const { user } = await getAuthenticatedUser(request);
+    if (!user) return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
+    if (!user.roles.some(role => ['claims', 'admin', 'system_admin'].includes(role))) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
     const body = await request.json();
     const {
       member_id,
@@ -87,9 +96,13 @@ export async function POST(request: NextRequest) {
       used_count = 0,
     } = body;
 
-    if (!member_id || !benefit_type) {
+    if (!isUuid(member_id) || typeof benefit_type !== 'string' || !/^[A-Za-z0-9_-]{1,80}$/.test(benefit_type) ||
+        !isValidYear(year) ||
+        (total_limit_amount !== undefined && !isNonnegativeNumber(total_limit_amount)) ||
+        (total_limit_count !== undefined && !isNonnegativeCount(total_limit_count)) ||
+        !isNonnegativeNumber(used_amount) || !isNonnegativeCount(used_count)) {
       return NextResponse.json(
-        { error: 'member_id and benefit_type are required' },
+        { error: 'Invalid benefit usage details' },
         { status: 400 }
       );
     }
@@ -104,14 +117,14 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (existing) {
-      // Update existing record
+      // Only explicitly supplied fields may alter an existing record.
+      const updates: Record<string, number | string> = { updated_at: new Date().toISOString() };
+      for (const field of ['total_limit_amount', 'total_limit_count', 'used_amount', 'used_count'] as const) {
+        if (Object.prototype.hasOwnProperty.call(body, field)) updates[field] = body[field];
+      }
       const { data, error } = await supabaseAdmin
         .from('benefit_usage')
-        .update({
-          used_amount,
-          used_count,
-          updated_at: new Date().toISOString(),
-        })
+        .update(updates)
         .eq('id', existing.id)
         .select()
         .single();
@@ -173,6 +186,11 @@ export async function POST(request: NextRequest) {
  */
 export async function PATCH(request: NextRequest) {
   try {
+    const { user } = await getAuthenticatedUser(request);
+    if (!user) return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
+    if (!user.roles.some(role => ['claims', 'admin', 'system_admin'].includes(role))) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
     const body = await request.json();
     const {
       member_id,
@@ -181,44 +199,20 @@ export async function PATCH(request: NextRequest) {
       year = new Date().getFullYear(),
     } = body;
 
-    if (!member_id || !benefit_type || amount === undefined) {
+    if (!isUuid(member_id) || typeof benefit_type !== 'string' || !/^[A-Za-z0-9_-]{1,80}$/.test(benefit_type) ||
+        !isValidYear(year) || !isNonnegativeNumber(amount) || amount === 0) {
       return NextResponse.json(
-        { error: 'member_id, benefit_type, and amount are required' },
+        { error: 'Invalid benefit usage increment' },
         { status: 400 }
       );
     }
 
-    // Get current usage
-    const { data: existing } = await supabaseAdmin
-      .from('benefit_usage')
-      .select('*')
-      .eq('member_id', member_id)
-      .eq('benefit_type', benefit_type)
-      .eq('year', year)
-      .single();
-
-    if (!existing) {
-      return NextResponse.json(
-        { error: 'Benefit usage record not found. Initialize it first.' },
-        { status: 404 }
-      );
-    }
-
-    // Increment usage
-    const newUsedAmount = (existing.used_amount || 0) + amount;
-    const newUsedCount = (existing.used_count || 0) + 1;
-
-    const { data, error } = await supabaseAdmin
-      .from('benefit_usage')
-      .update({
-        used_amount: newUsedAmount,
-        used_count: newUsedCount,
-        last_claim_date: new Date().toISOString().split('T')[0],
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', existing.id)
-      .select()
-      .single();
+    const { data, error } = await supabaseAdmin.rpc('increment_benefit_usage', {
+      p_member_id: member_id,
+      p_benefit_type: benefit_type,
+      p_year: year,
+      p_amount: amount,
+    });
 
     if (error) {
       console.error('Error incrementing benefit usage:', error);
@@ -228,6 +222,7 @@ export async function PATCH(request: NextRequest) {
       );
     }
 
+    if (!data) return NextResponse.json({ error: 'Benefit usage record not found' }, { status: 404 });
     return NextResponse.json({ usage: data });
   } catch (error) {
     console.error('Unexpected error:', error);

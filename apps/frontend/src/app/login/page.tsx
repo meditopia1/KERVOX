@@ -67,7 +67,8 @@ export default function LoginPage() {
         return;
       }
 
-      localStorage.setItem('member_session', data.session_token || data.member?.id || '');
+      // This is only a UI hint. The server validates its HttpOnly session cookie.
+      localStorage.setItem('member_session', 'active');
       localStorage.setItem('member_data', JSON.stringify(data.member));
 
       window.location.href = '/member/dashboard';

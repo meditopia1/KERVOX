@@ -1,14 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 import path from 'path';
 import fs from 'fs';
+import { enforcePublicRateLimit, parseOcrImage, readBoundedJson, RequestBodyError } from '@/lib/public-api-guard';
 
 export async function POST(request: NextRequest) {
   try {
-    const { images } = await request.json();
+    const limited = await enforcePublicRateLimit(request, 'ocr', 10, 500);
+    if (limited) return limited;
+    const { images } = await readBoundedJson(request, 40_000_000);
     
-    if (!images || images.length === 0) {
+    if (!Array.isArray(images) || images.length === 0 || images.length > 4) {
       return NextResponse.json(
-        { error: 'No images provided' },
+        { error: 'Provide between one and four images' },
         { status: 400 }
       );
     }
@@ -31,7 +34,7 @@ export async function POST(request: NextRequest) {
     let fullDocumentText = '';
 
     for (let i = 0; i < images.length; i++) {
-      const base64Image = images[i].replace(/^data:image\/\w+;base64,/, '');
+      const base64Image = parseOcrImage(images[i]);
       
       const response = await fetch(
         'https://vision.googleapis.com/v1/images:annotate',
@@ -66,7 +69,6 @@ export async function POST(request: NextRequest) {
       allPages.push({
         pageNumber: i + 1,
         text: pageText,
-        rawResponse: data.responses[0],
       });
 
       fullDocumentText += `\n\n=== PAGE ${i + 1} ===\n\n${pageText}`;
@@ -84,9 +86,10 @@ export async function POST(request: NextRequest) {
     });
     
   } catch (error) {
+    if (error instanceof RequestBodyError) return NextResponse.json({ error: error.message }, { status: error.status });
     console.error('Intelligent extraction error:', error);
     return NextResponse.json(
-      { error: 'Internal server error', details: error instanceof Error ? error.message : 'Unknown error' },
+      { error: 'Internal server error' },
       { status: 500 }
     );
   }

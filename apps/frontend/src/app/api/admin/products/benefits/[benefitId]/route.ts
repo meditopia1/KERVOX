@@ -23,7 +23,7 @@ function serializeExclusions(exclusions?: string[]) {
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { benefitId: string } }
+  { params }: { params: Promise<{ benefitId: string }> }
 ) {
   try {
     await requireAnyRole(request, ['admin', 'system_admin']);
@@ -43,7 +43,7 @@ export async function PUT(
     const { data: benefit, error } = await supabase
       .from('product_benefits')
       .update(updatePayload)
-      .eq('id', params.benefitId)
+      .eq('id', (await params).benefitId)
       .select('*')
       .single();
 

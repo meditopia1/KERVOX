@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { getAuthenticatedMemberId } from '@/lib/member-session';
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -14,14 +15,11 @@ const supabaseAdmin = createClient(
 
 export async function GET(request: NextRequest) {
   try {
+    const memberId = await getAuthenticatedMemberId(request);
+    if (!memberId) return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
     const searchParams = request.nextUrl.searchParams;
-    const memberId = searchParams.get('id');
-
-    if (!memberId) {
-      return NextResponse.json(
-        { error: 'Member ID is required' },
-        { status: 400 }
-      );
+    if (searchParams.get('id') && searchParams.get('id') !== memberId) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
     // Fetch member profile
@@ -62,7 +60,9 @@ export async function GET(request: NextRequest) {
       .limit(5);
 
     // Remove sensitive fields
-    const { pin_code, pin_hash, ...memberData } = member;
+    const memberData = Object.fromEntries(
+      Object.entries(member).filter(([key]) => key !== 'pin_code' && key !== 'pin_hash')
+    );
 
     return NextResponse.json({
       member: memberData,
@@ -74,7 +74,7 @@ export async function GET(request: NextRequest) {
   } catch (error: any) {
     console.error('Error fetching member profile:', error);
     return NextResponse.json(
-      { error: 'Internal server error', details: error.message },
+      { error: 'Internal server error' },
       { status: 500 }
     );
   }

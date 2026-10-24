@@ -16,13 +16,13 @@ const supabaseAdmin = createClient(
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Require claims assessor, admin, or operations manager role
     await requireAnyRole(request, ['claims', 'admin', 'operations_manager']);
     
-    const { id } = params;
+    const { id } = await params;
 
     const { data: preauth, error } = await supabaseAdmin
       .from('pre_authorizations')
@@ -100,13 +100,13 @@ export async function GET(
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Require claims assessor, admin, or operations manager role
     const user = await requireAnyRole(request, ['claims', 'admin', 'operations_manager']);
     
-    const { id } = params;
+    const { id } = await params;
     const body = await request.json();
     const { action, approved_amount, rejection_reason, notes } = body;
 

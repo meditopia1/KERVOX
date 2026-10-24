@@ -17,14 +17,14 @@ const supabaseAdmin = createClient(
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Require authentication - only claims assessors, admin, or operations can view claims
     await requireAnyRole(request, ['claims', 'admin', 'system_admin', 'operations_manager']);
 
     const supabase = createAuthenticatedSupabaseClient(request);
-    const { id } = params;
+    const { id } = await params;
 
     const { data: claim, error } = await supabase
       .from('claims')
@@ -101,13 +101,13 @@ export async function GET(
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Require authentication - only claims assessors, admin, or operations can update claims
     const user = await requireAnyRole(request, ['claims', 'admin', 'operations_manager']);
     
-    const { id } = params;
+    const { id } = await params;
     const body = await request.json();
     const { action, notes, approved_amount, rejection_reason, pended_reason, additional_info_requested } = body;
 

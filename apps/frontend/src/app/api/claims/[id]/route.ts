@@ -7,7 +7,7 @@ const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     await requireAnyRole(request, [
@@ -20,7 +20,7 @@ export async function GET(
     ]);
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
-    const claimId = params.id;
+    const claimId = (await params).id;
 
     const { data: claim, error: claimError } = await supabase
       .from('claims')

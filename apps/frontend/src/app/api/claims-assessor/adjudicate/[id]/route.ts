@@ -107,14 +107,14 @@ async function updateBenefitUsage(
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const user = await requireAnyRole(request, ['claims', 'admin', 'system_admin']);
     
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
     const body = await request.json();
-    const claimId = params.id;
+    const claimId = (await params).id;
 
     const {
       action, // 'approve', 'reject', or 'pend'

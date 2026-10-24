@@ -5,6 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { CheckCircle, Play, Upload, Mic, Square } from 'lucide-react';
 import { useToast } from '@/components/ui/toast';
+import { authFetch } from '@/lib/auth-fetch';
+import { openSafeDocumentUrl } from '@/lib/safe-document-url';
 
 interface UpgradeVerificationFormProps {
   upgradeRequest: {
@@ -141,7 +143,7 @@ export function UpgradeVerificationForm({ upgradeRequest, onVerify, onReject, us
       formData.append('bucket', 'call-recordings');
       formData.append('folder', 'upgrade-verification-calls');
 
-      const response = await fetch('/api/upload', {
+      const response = await authFetch('/api/upload', {
         method: 'POST',
         body: formData,
       });
@@ -363,7 +365,7 @@ export function UpgradeVerificationForm({ upgradeRequest, onVerify, onReject, us
                     size="sm"
                     variant="outline"
                     className="mt-2"
-                    onClick={() => window.open(upgradeRequest.call_recording_url, '_blank')}
+                    onClick={() => openSafeDocumentUrl(upgradeRequest.call_recording_url)}
                   >
                     <Play className="w-3 h-3 mr-1" />
                     Open Recording in New Tab

@@ -117,20 +117,6 @@ export async function getAuthenticatedUserFromToken(token: string): Promise<Auth
       };
     }
 
-    if (authUser.user_metadata?.role === 'provider') {
-      return {
-        user: {
-          id: authUser.id,
-          email: authUser.email || '',
-          roles: ['provider'],
-          permissions: [],
-          isProvider: true,
-          providerId: authUser.id,
-        },
-        error: null,
-      };
-    }
-
     const { data: userData, error: userError } = await supabase
       .from('users')
       .select('id, email, is_active')

@@ -94,40 +94,50 @@ export default function MemberDashboardPage() {
       if (data.member) {
         setMemberData(data.member);
         // Update localStorage with fresh data
-        localStorage.setItem('member_data', JSON.stringify(data.member));
-        fetchMemberStats(data.member.id);
+        localStorage.setItem('member_data', JSON.stringify({
+          id: data.member.id,
+          member_number: data.member.member_number,
+          first_name: data.member.first_name,
+          last_name: data.member.last_name,
+        }));
+        fetchMemberStats();
       }
     } catch (error) {
       console.error('Error fetching member data:', error);
-      // Fallback to localStorage if API fails
-      const memberDataStr = localStorage.getItem('member_data');
-      if (memberDataStr) {
-        const storedMemberData = JSON.parse(memberDataStr);
-        setMemberData(storedMemberData);
-        fetchMemberStats(storedMemberData.id);
-      }
+      // Never render stale browser-held member details after a failed server check.
+      localStorage.removeItem('member_session');
+      localStorage.removeItem('member_data');
+      router.replace('/login');
     } finally {
       setLoadingData(false);
     }
   };
 
-  const fetchMemberStats = async (memberId: string) => {
+  const fetchMemberStats = async () => {
     try {
-      // TODO: Implement member stats API endpoint
-      // For now, set dummy stats
+      const response = await fetch('/api/member/stats', { cache: 'no-store' });
+      if (!response.ok) throw new Error('Failed to fetch member stats');
+      const data = await response.json();
       setStats({
-        activeClaims: 0,
-        pendingClaims: 0,
-        totalClaimsPaid: 0,
-        lastPaymentDate: '',
-        lastPaymentAmount: 0
+        activeClaims: Number(data.activeClaims || 0),
+        pendingClaims: Number(data.pendingClaims || 0),
+        totalClaimsPaid: Number(data.totalClaimsPaid || 0),
+        lastPaymentDate: data.lastPaymentDate || '',
+        lastPaymentAmount: Number(data.lastPaymentAmount || 0),
       });
     } catch (error) {
       console.error('Error fetching member stats:', error);
     }
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try {
+      const response = await fetch('/api/member/logout', { method: 'POST' });
+      if (!response.ok) throw new Error('Sign-out failed');
+    } catch {
+      window.alert('Could not sign out. Please try again.');
+      return;
+    }
     localStorage.removeItem('member_session');
     localStorage.removeItem('member_data');
     router.push('/login');

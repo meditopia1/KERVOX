@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { validateWaitingPeriod } from '@/lib/benefit-validation-server';
-import { getAuthenticatedUser } from '@/lib/auth-server';
+import { getAuthenticatedMemberId } from '@/lib/member-session';
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -16,13 +16,16 @@ const supabaseAdmin = createClient(
 
 export async function POST(request: NextRequest) {
   try {
-    // Get authenticated user (optional for member claims - can be submitted without auth)
-    const { user } = await getAuthenticatedUser(request);
+    const memberId = await getAuthenticatedMemberId(request);
+    if (!memberId) return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
     
     const body = await request.json();
+    if (body.member_id && body.member_id !== memberId) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
 
     // Validate required fields
-    const requiredFields = ['member_id', 'service_date', 'claimed_amount', 'claim_type', 'benefit_type'];
+    const requiredFields = ['service_date', 'claimed_amount', 'benefit_type'];
     for (const field of requiredFields) {
       if (!body[field]) {
         return NextResponse.json(
@@ -32,28 +35,15 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // If user is authenticated, verify they are submitting for themselves
-    if (user && !user.isProvider) {
-      // Find member record linked to this user
-      const { data: memberData } = await supabaseAdmin
-        .from('members')
-        .select('id')
-        .eq('user_id', user.id)
-        .single();
-      
-      if (memberData && memberData.id !== body.member_id) {
-        return NextResponse.json(
-          { error: 'You can only submit claims for yourself' },
-          { status: 403 }
-        );
-      }
+    if (!Number.isFinite(Number(body.claimed_amount)) || Number(body.claimed_amount) <= 0) {
+      return NextResponse.json({ error: 'Invalid claimed amount' }, { status: 400 });
     }
 
     // Verify member exists and is active
     const { data: member, error: memberError } = await supabaseAdmin
       .from('members')
       .select('id, member_number, status, payment_status, plan_name, plan_id')
-      .eq('id', body.member_id)
+      .eq('id', memberId)
       .single();
 
     if (memberError || !member) {
@@ -90,7 +80,7 @@ export async function POST(request: NextRequest) {
     // Validate waiting period
     const waitingPeriodValidation = await validateWaitingPeriod(
       supabaseAdmin,
-      body.member_id,
+      memberId,
       body.benefit_type,
       member.plan_id
     );
@@ -112,11 +102,11 @@ export async function POST(request: NextRequest) {
       .from('claims')
       .insert({
         claim_number: claimNumber,
-        member_id: body.member_id,
-        provider_id: body.provider_id || null, // Optional for refund claims
+        member_id: memberId,
+        provider_id: null,
         service_date: body.service_date,
         claimed_amount: body.claimed_amount,
-        claim_type: body.claim_type,
+        claim_type: 'member_refund',
         benefit_type: body.benefit_type,
         icd10_codes: body.icd10_codes || [],
         tariff_codes: body.tariff_codes || [],
@@ -135,7 +125,7 @@ export async function POST(request: NextRequest) {
     if (error) {
       console.error('Error creating claim:', error);
       return NextResponse.json(
-        { error: 'Failed to create claim', details: error.message },
+        { error: 'Failed to create claim' },
         { status: 500 }
       );
     }
@@ -164,7 +154,7 @@ export async function POST(request: NextRequest) {
   } catch (error: any) {
     console.error('Error submitting claim:', error);
     return NextResponse.json(
-      { error: 'Internal server error', details: error.message },
+      { error: 'Internal server error' },
       { status: 500 }
     );
   }

@@ -4,7 +4,7 @@ import { requireAnyRole } from '@/lib/auth-server';
 
 export const dynamic = 'force-dynamic';
 
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     await requireAnyRole(request, ['admin', 'system_admin', 'operations_manager']);
     
@@ -29,7 +29,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
     const { data, error } = await supabase
       .from('payment_groups')
       .update(body)
-      .eq('id', params.id)
+      .eq('id', (await params).id)
       .select()
       .single();
 
@@ -42,7 +42,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
   }
 }
 
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     await requireAnyRole(request, ['admin', 'system_admin', 'operations_manager']);
     return NextResponse.json(

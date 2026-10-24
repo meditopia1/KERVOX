@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { getAuthenticatedMemberId } from '@/lib/member-session';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -8,16 +9,14 @@ const supabase = createClient(
 
 export async function GET(request: NextRequest) {
   try {
+    const memberId = await getAuthenticatedMemberId(request);
+    if (!memberId) return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
     const { searchParams } = new URL(request.url);
-    const memberId = searchParams.get('memberId');
-    const year = searchParams.get('year') || new Date().getFullYear().toString();
-
-    if (!memberId) {
-      return NextResponse.json(
-        { error: 'Member ID is required' },
-        { status: 400 }
-      );
+    if (searchParams.get('memberId') && searchParams.get('memberId') !== memberId) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
+    const year = searchParams.get('year') || new Date().getFullYear().toString();
+    if (!/^20\d{2}$/.test(year)) return NextResponse.json({ error: 'Invalid year' }, { status: 400 });
 
     // Get member's plan
     const { data: member, error: memberError } = await supabase
@@ -122,7 +121,7 @@ export async function GET(request: NextRequest) {
   } catch (error: any) {
     console.error('Error fetching member benefits:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to fetch benefits' },
+      { error: 'Failed to fetch benefits' },
       { status: 500 }
     );
   }

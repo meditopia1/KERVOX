@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft, Download, CheckCircle, XCircle, Clock, FileText, User, Building2, Calendar, DollarSign } from 'lucide-react';
 import { formatCurrency, getBatchStatusColor, getPaymentStatusColor } from '@/lib/payment-processing';
 import { authFetch } from '@/lib/auth-fetch';
+import { downloadEftFile } from '@/lib/finance-download';
 
 interface Payment {
   id: string;
@@ -237,14 +238,14 @@ export default function BatchDetailsPage() {
             {batch.status === 'processing' && (
               <>
                 {batch.eft_file_url && (
-                  <a 
-                    href={batch.eft_file_url} 
-                    download
+                  <button
+                    type="button"
+                    onClick={() => downloadEftFile(batch.id, batch.batch_number).catch((error) => alert(error.message))}
                     className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50 text-sm font-medium"
                   >
                     <Download className="w-4 h-4 mr-2" />
                     Download EFT File
-                  </a>
+                  </button>
                 )}
                 <Button 
                   onClick={() => handleBatchAction('complete')}

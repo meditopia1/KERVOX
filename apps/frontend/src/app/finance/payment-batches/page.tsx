@@ -11,6 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Download, FileText, CheckCircle, Clock, XCircle, Plus, Eye } from 'lucide-react';
 import { formatCurrency, getBatchStatusColor } from '@/lib/payment-processing';
 import { authFetch } from '@/lib/auth-fetch';
+import { downloadEftFile } from '@/lib/finance-download';
 
 interface PaymentBatch {
   id: string;
@@ -330,13 +331,13 @@ export default function PaymentBatchesPage() {
                             {batch.status === 'processing' && (
                               <>
                                 {batch.eft_file_url && (
-                                  <a 
-                                    href={batch.eft_file_url} 
-                                    download
+                                  <button
+                                    type="button"
+                                    onClick={() => downloadEftFile(batch.id, batch.batch_number).catch((error) => alert(error.message))}
                                     className="inline-flex items-center px-3 py-1.5 text-sm border border-gray-300 rounded-md hover:bg-gray-50"
                                   >
                                     <Download className="w-4 h-4" />
-                                  </a>
+                                  </button>
                                 )}
                                 <Button 
                                   size="sm"

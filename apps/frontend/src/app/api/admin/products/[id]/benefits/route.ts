@@ -6,7 +6,7 @@ export const dynamic = 'force-dynamic'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     await requireAnyRole(request, ['admin', 'system_admin']);
@@ -15,7 +15,7 @@ export async function GET(
     const { data: benefits, error } = await supabaseAdmin
       .from('product_benefits')
       .select('*')
-      .eq('product_id', params.id)
+      .eq('product_id', (await params).id)
       .order('name')
 
     if (error) throw error

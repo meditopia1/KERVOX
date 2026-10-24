@@ -1,7 +1,7 @@
-import { fireEvent, render, screen, within } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import MemberLayout from '../layout';
 
-const mockRouter = { push: jest.fn() };
+const mockRouter = { push: jest.fn(), replace: jest.fn() };
 
 jest.mock('next/navigation', () => ({
   usePathname: () => '/member/dashboard',
@@ -19,11 +19,24 @@ jest.mock('next/image', () => ({
 describe('member workspace layout', () => {
   beforeEach(() => {
     mockRouter.push.mockReset();
+    mockRouter.replace.mockReset();
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ authenticated: true, member_id: 'member-1' }),
+    });
     window.localStorage.clear();
     window.localStorage.setItem('member_session', 'active');
     window.localStorage.setItem('member_data', JSON.stringify({
       id: 'member-1', member_number: 'KV-001', first_name: 'Alex', last_name: 'Park', email: 'alex@example.com', mobile: '',
     }));
+  });
+
+  it('rejects stale browser-held data when the server session is missing', async () => {
+    global.fetch = jest.fn().mockResolvedValue({ ok: false, status: 401 });
+    render(<MemberLayout><div>Protected content</div></MemberLayout>);
+    await waitFor(() => expect(mockRouter.replace).toHaveBeenCalledWith('/login'));
+    expect(screen.queryByText('Protected content')).toBeNull();
+    expect(window.localStorage.getItem('member_data')).toBeNull();
   });
 
   it('keeps navigation accessible and closes the mobile drawer after selection', async () => {

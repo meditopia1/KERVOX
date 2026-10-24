@@ -14,7 +14,7 @@ function slugify(value: string) {
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     await requireAnyRole(request, ['admin', 'system_admin']);
@@ -23,7 +23,7 @@ export async function GET(
     const { data: product, error } = await supabase
       .from('products')
       .select('*')
-      .eq('id', params.id)
+      .eq('id', (await params).id)
       .single()
 
     if (error || !product) {
@@ -45,7 +45,7 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     await requireAnyRole(request, ['admin', 'system_admin']);
@@ -67,7 +67,7 @@ export async function PUT(
       .from('products')
       .select('id')
       .or(`code.eq.${code},slug.eq.${slug}`)
-      .neq('id', params.id)
+      .neq('id', (await params).id)
       .maybeSingle()
 
     if (conflictingProduct) {
@@ -99,7 +99,7 @@ export async function PUT(
     const { data: updatedProduct, error } = await supabase
       .from('products')
       .update(updatePayload)
-      .eq('id', params.id)
+      .eq('id', (await params).id)
       .select('*')
       .single()
 

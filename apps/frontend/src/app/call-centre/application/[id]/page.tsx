@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { User, MapPin, FileText, Users, CreditCard, CheckCircle, Phone, Mic, Square, Play, Upload, Heart } from 'lucide-react';
 import { authFetch } from '@/lib/auth-fetch';
+import { openSafeDocumentUrl } from '@/lib/safe-document-url';
 
 interface Application {
   id: string;
@@ -164,7 +165,7 @@ export default function CallCentreApplicationDetailPage() {
       formData.append('bucket', 'call-recordings');
       formData.append('folder', 'verification-calls');
 
-      const response = await fetch('/api/upload', {
+      const response = await authFetch('/api/upload', {
         method: 'POST',
         body: formData,
       });
@@ -759,7 +760,7 @@ export default function CallCentreApplicationDetailPage() {
                     <Button
                       size="sm"
                       variant="outline"
-                      onClick={() => window.open(uploadedRecordingUrl, '_blank')}
+                      onClick={() => openSafeDocumentUrl(uploadedRecordingUrl)}
                     >
                       <Play className="w-3 h-3 mr-1" />
                       Listen to Recording

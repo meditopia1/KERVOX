@@ -9,7 +9,7 @@ const supabase = createClient(
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     await requireAnyRole(request, ['admin', 'system_admin', 'operations_manager']);
@@ -17,7 +17,7 @@ export async function GET(
     const { data: provider, error } = await supabase
       .from('providers')
       .select('*')
-      .eq('id', params.id)
+      .eq('id', (await params).id)
       .single();
 
     if (error) throw error;
@@ -41,7 +41,7 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     await requireAnyRole(request, ['admin', 'system_admin']);
@@ -53,7 +53,7 @@ export async function PUT(
     const { data: currentProvider } = await supabase
       .from('providers')
       .select('user_id, login_email')
-      .eq('id', params.id)
+      .eq('id', (await params).id)
       .single();
 
     let userId = currentProvider?.user_id;
@@ -131,7 +131,7 @@ export async function PUT(
         user_id: userId,
         login_email: login_email || null,
       })
-      .eq('id', params.id);
+      .eq('id', (await params).id);
 
     if (error) throw error;
 
@@ -147,7 +147,7 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   return NextResponse.json(
     {

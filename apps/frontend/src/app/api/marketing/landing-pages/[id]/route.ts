@@ -11,13 +11,13 @@ function asRecord(value: unknown): Record<string, unknown> {
     : {}
 }
 
-export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { user } = await getAuthenticatedUser(request)
   if (!user) return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
   if (!user.roles.some((role) => ['marketing_manager', 'admin', 'system_admin'].includes(role))) {
     return NextResponse.json({ error: 'Access denied' }, { status: 403 })
   }
-  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(params.id)) {
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test((await params).id)) {
     return NextResponse.json({ error: 'Invalid landing-page ID.' }, { status: 400 })
   }
 
@@ -30,7 +30,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
     const { data: existing, error: readError } = await supabase
       .from('landing_pages')
       .select('content, metadata')
-      .eq('id', params.id)
+      .eq('id', (await params).id)
       .maybeSingle()
 
     if (readError) throw readError
@@ -51,7 +51,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
         metadata: { ...metadata, seo: { ...asRecord(metadata.seo), title, description } },
         updated_at: new Date().toISOString(),
       })
-      .eq('id', params.id)
+      .eq('id', (await params).id)
       .select('*')
       .single()
 

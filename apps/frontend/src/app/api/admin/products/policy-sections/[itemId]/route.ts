@@ -11,7 +11,7 @@ type UpdateSectionItemPayload = {
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { itemId: string } }
+  { params }: { params: Promise<{ itemId: string }> }
 ) {
   try {
     await requireAnyRole(request, ['admin', 'system_admin']);
@@ -33,7 +33,7 @@ export async function PUT(
         content,
         updated_at: new Date().toISOString(),
       })
-      .eq('id', params.itemId)
+      .eq('id', (await params).itemId)
       .select('*')
       .single();
 
@@ -57,7 +57,7 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { itemId: string } }
+  { params }: { params: Promise<{ itemId: string }> }
 ) {
   try {
     await requireAnyRole(request, ['admin', 'system_admin']);
@@ -66,7 +66,7 @@ export async function DELETE(
     const { error } = await supabase
       .from('policy_section_items')
       .delete()
-      .eq('id', params.itemId);
+      .eq('id', (await params).itemId);
 
     if (error) {
       console.error('Error deleting policy section item:', error);

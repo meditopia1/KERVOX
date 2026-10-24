@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import bcrypt from 'bcryptjs';
+import { setMemberSession } from '@/lib/member-session';
+import { enforcePublicRateLimit, readBoundedJson, RequestBodyError } from '@/lib/public-api-guard';
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -15,11 +17,14 @@ const supabaseAdmin = createClient(
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
+    const limited = await enforcePublicRateLimit(request, 'member_login', 15, 1000);
+    if (limited) return limited;
+    const body = await readBoundedJson(request, 4096);
     const { email, pin } = body;
-    const normalizedEmail = typeof email === 'string' ? email.trim() : '';
+    const normalizedEmail = typeof email === 'string' ? email.trim().toLowerCase() : '';
 
-    if (!normalizedEmail || !pin) {
+    if (!/^[^\s@%]+@[^\s@%]+\.[^\s@%]+$/.test(normalizedEmail) ||
+        normalizedEmail.length > 254 || typeof pin !== 'string' || !pin || pin.length > 64) {
       return NextResponse.json(
         { error: 'Email and PIN are required' },
         { status: 400 }
@@ -29,8 +34,8 @@ export async function POST(request: NextRequest) {
     // Find member by email
     const { data: member, error } = await supabaseAdmin
       .from('members')
-      .select('*')
-      .ilike('email', normalizedEmail)
+      .select('id, member_number, first_name, last_name, email, pin_hash, status, locked_until, failed_login_attempts')
+      .eq('email', normalizedEmail)
       .single();
 
     if (error || !member) {
@@ -42,10 +47,9 @@ export async function POST(request: NextRequest) {
 
     // Check if account is locked
     if (member.locked_until && new Date(member.locked_until) > new Date()) {
-      const lockMinutes = Math.ceil((new Date(member.locked_until).getTime() - Date.now()) / 60000);
       return NextResponse.json(
-        { error: `Account locked. Try again in ${lockMinutes} minutes.` },
-        { status: 423 }
+        { error: 'Invalid email or PIN' },
+        { status: 401 }
       );
     }
 
@@ -57,23 +61,13 @@ export async function POST(request: NextRequest) {
     }
 
     if (!pinValid) {
-      // Increment failed login attempts
-      const failedAttempts = (member.failed_login_attempts || 0) + 1;
-      const updateData: any = {
-        failed_login_attempts: failedAttempts
-      };
-
-      // Lock account after 5 failed attempts
-      if (failedAttempts >= 5) {
-        const lockUntil = new Date();
-        lockUntil.setMinutes(lockUntil.getMinutes() + 30); // Lock for 30 minutes
-        updateData.locked_until = lockUntil.toISOString();
+      const { error: attemptError } = await supabaseAdmin.rpc('record_member_login_failure', {
+        p_member_id: member.id,
+      });
+      if (attemptError) {
+        console.error('Failed to record member login failure:', attemptError);
+        return NextResponse.json({ error: 'Login unavailable' }, { status: 503 });
       }
-
-      await supabaseAdmin
-        .from('members')
-        .update(updateData)
-        .eq('id', member.id);
 
       return NextResponse.json(
         { error: 'Invalid email or PIN' },
@@ -84,8 +78,8 @@ export async function POST(request: NextRequest) {
     // Check if member is active
     if (member.status !== 'active') {
       return NextResponse.json(
-        { error: `Account is ${member.status}. Please contact support.` },
-        { status: 403 }
+        { error: 'Invalid email or PIN' },
+        { status: 401 }
       );
     }
 
@@ -98,20 +92,27 @@ export async function POST(request: NextRequest) {
       })
       .eq('id', member.id);
 
-    // Return member data (excluding sensitive fields)
-    const { pin_code, pin_hash, ...memberData } = member;
+    const memberData = {
+      id: member.id,
+      member_number: member.member_number,
+      first_name: member.first_name,
+      last_name: member.last_name,
+    };
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       success: true,
-      session_token: member.id,
       member: memberData,
       message: 'Login successful'
     });
+    response.headers.set('Cache-Control', 'no-store');
+    setMemberSession(response, member);
+    return response;
 
   } catch (error: any) {
+    if (error instanceof RequestBodyError) return NextResponse.json({ error: error.message }, { status: error.status });
     console.error('Error in member login:', error);
     return NextResponse.json(
-      { error: 'Internal server error', details: error.message },
+      { error: 'Internal server error' },
       { status: 500 }
     );
   }

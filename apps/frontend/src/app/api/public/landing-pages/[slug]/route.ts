@@ -5,7 +5,7 @@ export const dynamic = 'force-dynamic'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { slug: string } }
+  { params }: { params: Promise<{ slug: string }> }
 ) {
   try {
     const supabase = createServerSupabaseClient()
@@ -13,7 +13,7 @@ export async function GET(
     const { data: page, error } = await supabase
       .from('landing_pages')
       .select('*')
-      .eq('slug', params.slug)
+      .eq('slug', (await params).slug)
       .eq('status', 'active')
       .single()
 

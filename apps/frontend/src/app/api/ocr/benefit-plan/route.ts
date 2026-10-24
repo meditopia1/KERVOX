@@ -1,13 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import path from 'path';
 import fs from 'fs';
+import { enforcePublicRateLimit, parseOcrImage, readBoundedJson, RequestBodyError } from '@/lib/public-api-guard';
 
 export async function POST(request: NextRequest) {
   try {
-    const { image } = await request.json();
+    const limited = await enforcePublicRateLimit(request, 'ocr', 10, 500);
+    if (limited) return limited;
+    const { image } = await readBoundedJson(request, 14_000_000);
     
     // Remove data URL prefix
-    const base64Image = image.replace(/^data:image\/\w+;base64,/, '');
+    const base64Image = parseOcrImage(image);
     
     // Load service account credentials
     const keyPath = path.join(process.cwd(), 'google-vision-key.json');
@@ -55,7 +58,7 @@ export async function POST(request: NextRequest) {
       const error = await response.text();
       console.error('Google Vision API error:', error);
       return NextResponse.json(
-        { error: 'OCR processing failed', details: error },
+        { error: 'OCR processing failed' },
         { status: response.status }
       );
     }
@@ -79,13 +82,13 @@ export async function POST(request: NextRequest) {
       success: true,
       fullText,
       extractedBenefits,
-      rawResponse: data.responses[0],
     });
     
   } catch (error) {
+    if (error instanceof RequestBodyError) return NextResponse.json({ error: error.message }, { status: error.status });
     console.error('Benefit plan OCR error:', error);
     return NextResponse.json(
-      { error: 'Internal server error', details: error instanceof Error ? error.message : 'Unknown error' },
+      { error: 'Internal server error' },
       { status: 500 }
     );
   }

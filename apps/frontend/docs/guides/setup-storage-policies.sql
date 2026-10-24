@@ -1,33 +1,12 @@
--- Supabase Storage Policies for Applications Bucket
--- Run this in Supabase SQL Editor
+-- Historical setup instructions granted every browser direct CRUD access to
+-- application documents. Do not recreate those policies. Uploads now pass
+-- through /api/upload, which validates destination, size, type and staff role
+-- before using a server-only key. The current security migration removes the
+-- old public policies and blocks direct browser-token writes to these buckets:
+-- supabase/migrations/20261024114528_restrict_contact_and_storage_access.sql
 
--- 1. Allow public uploads to applications bucket
-CREATE POLICY "Allow public uploads"
-ON storage.objects
-FOR INSERT
-TO public
-WITH CHECK (bucket_id = 'applications');
-
--- 2. Allow public reads from applications bucket
-CREATE POLICY "Allow public reads"
-ON storage.objects
-FOR SELECT
-TO public
-USING (bucket_id = 'applications');
-
--- 3. Allow public updates to applications bucket
-CREATE POLICY "Allow public updates"
-ON storage.objects
-FOR UPDATE
-TO public
-USING (bucket_id = 'applications');
-
--- 4. Allow public deletes from applications bucket
-CREATE POLICY "Allow public deletes"
-ON storage.objects
-FOR DELETE
-TO public
-USING (bucket_id = 'applications');
-
--- Verify policies
-SELECT * FROM pg_policies WHERE tablename = 'objects' AND schemaname = 'storage';
+-- Read-only verification in Supabase SQL Editor:
+select policyname, roles, cmd, qual, with_check
+from pg_policies
+where schemaname = 'storage' and tablename = 'objects'
+order by policyname;

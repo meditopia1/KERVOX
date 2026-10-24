@@ -33,6 +33,7 @@ export default function MemberLayout({
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [memberData, setMemberData] = useState<MemberData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [logoutError, setLogoutError] = useState('');
 
   useEffect(() => {
     if (!sidebarOpen) return;
@@ -44,27 +45,39 @@ export default function MemberLayout({
   }, [sidebarOpen]);
 
   useEffect(() => {
-    // Check if member is logged in
-    const memberSession = localStorage.getItem('member_session');
-    const memberDataStr = localStorage.getItem('member_data');
-    
-    if (!memberSession || !memberDataStr) {
-      router.push('/login');
-      return;
+    let cancelled = false;
+    async function verifySession() {
+      let authenticated = false;
+      try {
+        const response = await fetch('/api/member/session', { cache: 'no-store' });
+        if (!response.ok) throw new Error('Session expired');
+        const session = await response.json();
+        authenticated = true;
+        const memberDataStr = localStorage.getItem('member_data');
+        if (memberDataStr) {
+          const storedMemberData = JSON.parse(memberDataStr);
+          if (storedMemberData.id === session.member_id && !cancelled) setMemberData(storedMemberData);
+        }
+      } catch {
+        localStorage.removeItem('member_session');
+        localStorage.removeItem('member_data');
+        if (!cancelled) router.replace('/login');
+      } finally {
+        if (!cancelled && authenticated) setLoading(false);
+      }
     }
-
-    try {
-      const storedMemberData = JSON.parse(memberDataStr);
-      setMemberData(storedMemberData);
-    } catch (error) {
-      console.error('Error parsing member data:', error);
-      router.push('/login');
-    } finally {
-      setLoading(false);
-    }
+    void verifySession();
+    return () => { cancelled = true; };
   }, [router]);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try {
+      const response = await fetch('/api/member/logout', { method: 'POST' });
+      if (!response.ok) throw new Error('Sign-out failed');
+    } catch {
+      setLogoutError('Could not sign out. Please try again.');
+      return;
+    }
     localStorage.removeItem('member_session');
     localStorage.removeItem('member_data');
     router.push('/login');
@@ -221,6 +234,7 @@ export default function MemberLayout({
               </svg>
               Logout
             </button>
+            {logoutError && <p role="alert" className="mt-2 text-xs text-red-700">{logoutError}</p>}
           </div>
         </div>
       </aside>

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { getAuthenticatedUser } from '@/lib/auth-server';
 
 // Waiting periods by benefit type (in days)
 const WAITING_PERIODS = {
@@ -39,20 +40,27 @@ const supabaseAdmin = createClient(
 
 export async function POST(request: NextRequest) {
   try {
+    const { user } = await getAuthenticatedUser(request);
+    if (!user) return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
+    if (!user.isProvider || !user.providerId) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     const body = await request.json();
     const { member_number, id_number, patient_name, date_of_birth } = body;
     const normalizedMemberNumber = typeof member_number === 'string' ? member_number.trim() : '';
     const normalizedIdNumber = typeof id_number === 'string' ? id_number.trim() : '';
     const normalizedPatientName = typeof patient_name === 'string' ? patient_name.trim() : '';
+    const normalizedDOB = typeof date_of_birth === 'string' ? date_of_birth.trim() : '';
 
-    if (!normalizedMemberNumber && !normalizedIdNumber && !normalizedPatientName) {
+    const nameParts = normalizedPatientName.split(/\s+/).filter(Boolean);
+    if ((!normalizedMemberNumber && !normalizedIdNumber && !(nameParts.length >= 2 && normalizedDOB)) ||
+        (normalizedDOB && !/^\d{4}-\d{2}-\d{2}$/.test(normalizedDOB)) ||
+        normalizedMemberNumber.length > 80 || normalizedIdNumber.length > 80 || normalizedPatientName.length > 160) {
       return NextResponse.json(
-        { error: 'member_number, id_number, or patient_name is required' },
+        { error: 'Provide a member number, ID number, or full name with date of birth' },
         { status: 400 }
       );
     }
 
-    // Build a forgiving lookup so providers can search by either identifier
+    // Exact identifiers only. A fuzzy name query can expose unrelated member records.
     let query = supabaseAdmin
       .from('members')
       .select(`
@@ -70,62 +78,16 @@ export async function POST(request: NextRequest) {
         start_date,
         email,
       mobile
-      `)
-      .limit(10);
+      `);
 
-    if (normalizedPatientName) {
-      const nameTerms = normalizedPatientName
-        .toLowerCase()
-        .split(/\s+/)
-        .filter(Boolean);
-
-      if (nameTerms.length > 0) {
-        query = query.or(
-          nameTerms
-            .map((term) => `first_name.ilike.%${term}%,last_name.ilike.%${term}%`)
-            .join(',')
-        );
-      }
-    } else if (normalizedMemberNumber && normalizedIdNumber) {
-      query = query.or(
-        `member_number.ilike.${normalizedMemberNumber},id_number.eq.${normalizedIdNumber}`
-      );
-    } else if (normalizedMemberNumber) {
-      query = query.ilike('member_number', normalizedMemberNumber);
-    } else {
-      query = query.eq('id_number', normalizedIdNumber);
+    if (normalizedMemberNumber) query = query.eq('member_number', normalizedMemberNumber);
+    if (normalizedIdNumber) query = query.eq('id_number', normalizedIdNumber);
+    if (!normalizedMemberNumber && !normalizedIdNumber) {
+      query = query.eq('first_name', nameParts[0])
+        .eq('last_name', nameParts.slice(1).join(' '))
+        .eq('date_of_birth', normalizedDOB);
     }
-
-    const { data: memberCandidates, error } = await query;
-
-    const member =
-      memberCandidates?.find((candidate) =>
-        normalizedPatientName &&
-        normalizedPatientName
-          .toLowerCase()
-          .split(/\s+/)
-          .filter(Boolean)
-          .every((term) =>
-            `${candidate.first_name || ''} ${candidate.last_name || ''}`
-              .toLowerCase()
-              .includes(term)
-          )
-      ) ||
-      memberCandidates?.find((candidate) =>
-        normalizedMemberNumber &&
-        normalizedIdNumber &&
-        candidate.member_number?.toLowerCase() === normalizedMemberNumber.toLowerCase() &&
-        candidate.id_number === normalizedIdNumber
-      ) ||
-      memberCandidates?.find((candidate) =>
-        normalizedMemberNumber &&
-        candidate.member_number?.toLowerCase() === normalizedMemberNumber.toLowerCase()
-      ) ||
-      memberCandidates?.find((candidate) =>
-        normalizedIdNumber &&
-        candidate.id_number === normalizedIdNumber
-      ) ||
-      null;
+    const { data: member, error } = await query.maybeSingle();
 
     if (error || !member) {
       return NextResponse.json({
@@ -136,11 +98,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Verify date of birth if provided
-    if (date_of_birth && member.date_of_birth) {
-      const providedDOB = new Date(date_of_birth).toISOString().split('T')[0];
-      const memberDOB = new Date(member.date_of_birth).toISOString().split('T')[0];
-      
-      if (providedDOB !== memberDOB) {
+    if (normalizedDOB && member.date_of_birth) {
+      if (normalizedDOB !== String(member.date_of_birth).slice(0, 10)) {
         return NextResponse.json({
           eligible: false,
           message: 'Date of birth does not match',
@@ -293,7 +252,7 @@ export async function POST(request: NextRequest) {
   } catch (error: any) {
     console.error('Error checking eligibility:', error);
     return NextResponse.json(
-      { error: 'Internal server error', details: error.message },
+      { error: 'Internal server error' },
       { status: 500 }
     );
   }

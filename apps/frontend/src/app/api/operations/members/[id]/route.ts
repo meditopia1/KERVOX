@@ -15,7 +15,7 @@ const supabaseAdmin = createClient(
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     await requireAnyRole(request, ['operations_manager', 'system_admin', 'admin', 'finance_manager']);
@@ -24,7 +24,7 @@ export async function GET(
     const { data: member, error } = await supabase
       .from('members')
       .select('*, brokers(code, name)')
-      .eq('id', params.id)
+      .eq('id', (await params).id)
       .single();
 
     if (error) {
@@ -103,7 +103,7 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     await requireAnyRole(request, ['operations_manager', 'system_admin', 'admin']);
@@ -123,7 +123,7 @@ export async function PUT(
         payment_group_id: body.payment_group_id,
         collection_method: body.collection_method,
       })
-      .eq('id', params.id)
+      .eq('id', (await params).id)
       .select()
       .single();
 
@@ -144,7 +144,7 @@ export async function PUT(
 
 export async function PATCH(
   request: NextRequest,
-  context: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   return PUT(request, context);
 }

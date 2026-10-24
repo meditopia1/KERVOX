@@ -6,7 +6,7 @@ export const dynamic = 'force-dynamic';
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string; memberId: string } }
+  { params }: { params: Promise<{ id: string; memberId: string }> }
 ) {
   try {
     await requireAnyRole(request, ['operations_manager', 'system_admin', 'admin']);
@@ -26,7 +26,7 @@ export async function DELETE(
         payment_group_id: null,
         collection_method: 'individual_debit_order',
       })
-      .eq('id', params.memberId)
+      .eq('id', (await params).memberId)
       .select()
       .single();
 

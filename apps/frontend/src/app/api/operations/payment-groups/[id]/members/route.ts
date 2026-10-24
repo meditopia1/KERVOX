@@ -15,13 +15,13 @@ const supabase = createClient(
   }
 );
 
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     await requireAnyRole(request, ['operations_manager', 'system_admin', 'admin', 'finance_manager']);
     const { data, error } = await supabase
       .from('members')
       .select('id, member_number, first_name, last_name, id_number, date_of_birth, monthly_premium, payment_group_id, collection_method, phone, email')
-      .eq('payment_group_id', params.id)
+      .eq('payment_group_id', (await params).id)
       .order('member_number');
 
     if (error) throw error;
@@ -33,7 +33,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
   }
 }
 
-export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     await requireAnyRole(request, ['operations_manager', 'system_admin', 'admin']);
     const body = await request.json();
@@ -43,13 +43,13 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
     const { data: group } = await supabase
       .from('payment_groups')
       .select('collection_method')
-      .eq('id', params.id)
+      .eq('id', (await params).id)
       .single();
 
     const { data, error } = await supabase
       .from('members')
       .update({
-        payment_group_id: params.id,
+        payment_group_id: (await params).id,
         collection_method: group?.collection_method || 'group_debit_order',
       })
       .eq('id', member_id)

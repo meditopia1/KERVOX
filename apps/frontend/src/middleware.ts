@@ -15,9 +15,9 @@ import { getAuthenticatedUserFromToken } from '@/lib/auth-server';
  * - /api/broker/*
  * - /api/marketing/*
  * 
- * Unprotected routes (in development):
- * - /api/member/* (custom email and PIN auth)
- * - /api/provider/* (custom provider auth - not ready)
+ * Routes with their own handler-level authentication:
+ * - /api/member/* (signed HttpOnly member session)
+ * - /api/provider/* (verified Supabase provider identity)
  * - /api/applications (public application submission)
  * - /api/products (public product listing)
  * - /api/ocr (public OCR processing)
@@ -47,7 +47,8 @@ export async function middleware(request: NextRequest) {
   const isProtected = protectedPrefixes.some(prefix => pathname.startsWith(prefix));
 
   if (!isProtected) {
-    // Allow unprotected routes (member, provider, public routes)
+    // Member/provider handlers enforce their own authentication; truly public
+    // routes validate and constrain input in their handlers.
     return NextResponse.next();
   }
 

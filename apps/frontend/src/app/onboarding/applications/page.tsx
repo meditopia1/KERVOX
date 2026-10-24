@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
+import { openSafeDocumentUrl } from '@/lib/safe-document-url'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { User, MapPin, FileText, CreditCard, Users, Phone, Mail, Calendar, X, Heart } from 'lucide-react'
@@ -369,7 +370,7 @@ export default function OnboardingApplicationsPage() {
                             <Button 
                               size="sm" 
                               variant="outline"
-                              onClick={() => window.open(selectedApplication.id_document_url, '_blank')}
+                              onClick={() => openSafeDocumentUrl(selectedApplication.id_document_url)}
                             >
                               Open in New Tab
                             </Button>
@@ -407,7 +408,7 @@ export default function OnboardingApplicationsPage() {
                             <Button 
                               size="sm" 
                               variant="outline"
-                              onClick={() => window.open(selectedApplication.proof_of_address_url, '_blank')}
+                              onClick={() => openSafeDocumentUrl(selectedApplication.proof_of_address_url)}
                             >
                               Open in New Tab
                             </Button>
@@ -428,7 +429,7 @@ export default function OnboardingApplicationsPage() {
                                 <Button 
                                   size="sm" 
                                   variant="outline"
-                                  onClick={() => window.open(url, '_blank')}
+                                  onClick={() => openSafeDocumentUrl(url)}
                                 >
                                   Open in New Tab
                                 </Button>

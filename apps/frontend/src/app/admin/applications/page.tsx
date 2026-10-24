@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/components/ui/toast';
 import { authFetch } from '@/lib/auth-fetch';
+import { openSafeDocumentUrl } from '@/lib/safe-document-url';
 import { 
   FileText, 
   User, 
@@ -85,6 +86,30 @@ interface Stats {
   under_review: number
   approved: number
   rejected: number
+}
+
+function showDocumentFallback(parent: HTMLElement | null, documentUrl: string) {
+  if (!parent) return;
+  const message = document.createElement('p');
+  message.className = 'text-sm text-gray-500 text-center py-4';
+  message.append('Unable to display image. ');
+
+  try {
+    const url = new URL(documentUrl);
+    if (url.protocol === 'https:' || url.protocol === 'http:') {
+      const link = document.createElement('a');
+      link.href = url.href;
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer';
+      link.className = 'text-blue-600 underline';
+      link.textContent = 'Click here to open';
+      message.append(link);
+    }
+  } catch {
+    // Malformed or non-web URLs must not become clickable document links.
+  }
+
+  parent.replaceChildren(message);
 }
 
 export default function AdminApplicationsPage() {
@@ -664,7 +689,7 @@ export default function AdminApplicationsPage() {
                                 <p className="text-sm text-gray-600 mb-3">PDF Document</p>
                                 <Button 
                                   size="sm" 
-                                  onClick={() => window.open(selectedApplication.id_document_url, '_blank')}
+                                  onClick={() => openSafeDocumentUrl(selectedApplication.id_document_url)}
                                 >
                                   Open PDF in New Tab
                                 </Button>
@@ -677,10 +702,7 @@ export default function AdminApplicationsPage() {
                                 onError={(e) => {
                                   const target = e.target as HTMLImageElement;
                                   target.style.display = 'none';
-                                  const parent = target.parentElement;
-                                  if (parent) {
-                                    parent.innerHTML = '<p class="text-sm text-gray-500 text-center py-4">Unable to display image. <a href="' + selectedApplication.id_document_url + '" target="_blank" class="text-blue-600 underline">Click here to open</a></p>';
-                                  }
+                                  showDocumentFallback(target.parentElement, selectedApplication.id_document_url);
                                 }}
                               />
                             )}
@@ -717,7 +739,7 @@ export default function AdminApplicationsPage() {
                               <Button 
                                 size="sm" 
                                 variant="outline"
-                                onClick={() => window.open(selectedApplication.proof_of_address_url, '_blank')}
+                                onClick={() => openSafeDocumentUrl(selectedApplication.proof_of_address_url)}
                               >
                                 Open in New Tab
                               </Button>
@@ -735,7 +757,7 @@ export default function AdminApplicationsPage() {
                                     <p className="text-sm text-gray-600 mb-3">PDF Document</p>
                                     <Button 
                                       size="sm" 
-                                      onClick={() => window.open(url, '_blank')}
+                                      onClick={() => openSafeDocumentUrl(url)}
                                     >
                                       Open PDF in New Tab
                                     </Button>
@@ -748,10 +770,7 @@ export default function AdminApplicationsPage() {
                                     onError={(e) => {
                                       const target = e.target as HTMLImageElement;
                                       target.style.display = 'none';
-                                      const parent = target.parentElement;
-                                      if (parent) {
-                                        parent.innerHTML = '<p class="text-sm text-gray-500 text-center py-4">Unable to display image. <a href="' + url + '" target="_blank" class="text-blue-600 underline">Click here to open</a></p>';
-                                      }
+                                      showDocumentFallback(target.parentElement, url);
                                     }}
                                   />
                                 )}
@@ -1015,7 +1034,7 @@ export default function AdminApplicationsPage() {
                                     size="sm"
                                     variant="outline"
                                     className="mt-2"
-                                    onClick={() => window.open(recordingUrl, '_blank')}
+                                    onClick={() => openSafeDocumentUrl(recordingUrl)}
                                   >
                                     <Play className="w-3 h-3 mr-1" />
                                     Open Recording in New Tab

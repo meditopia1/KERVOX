@@ -50,8 +50,6 @@ export default function MemberClaimsPage() {
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
 
-  // TODO: Get member_id from authenticated session
-  const memberId = 'temp-member-id'; // Replace with actual member ID from auth
 
   useEffect(() => {
     fetchClaims();
@@ -60,9 +58,7 @@ export default function MemberClaimsPage() {
   const fetchClaims = async () => {
     try {
       setLoading(true);
-      const params = new URLSearchParams({
-        member_id: memberId
-      });
+      const params = new URLSearchParams();
       
       if (statusFilter) params.append('status', statusFilter);
       if (dateFrom) params.append('date_from', dateFrom);

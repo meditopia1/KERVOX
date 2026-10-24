@@ -9,7 +9,7 @@ const supabase = createClient(
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   await requireAnyRole(request, ['admin', 'system_admin']);
   try {
@@ -27,7 +27,7 @@ export async function POST(
     const { data: provider, error: providerError } = await supabase
       .from('providers')
       .select('*')
-      .eq('id', params.id)
+      .eq('id', (await params).id)
       .single();
 
     if (providerError || !provider) {
@@ -81,7 +81,7 @@ export async function POST(
     const { error: updateError } = await supabase
       .from('providers')
       .update({ user_id: authData.user.id })
-      .eq('id', params.id);
+      .eq('id', (await params).id);
 
     if (updateError) {
       throw updateError;

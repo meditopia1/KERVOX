@@ -6,7 +6,7 @@ export const dynamic = 'force-dynamic'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     await requireAnyRole(request, ['admin', 'system_admin', 'operations_manager']);
@@ -16,7 +16,7 @@ export async function GET(
     const { data: member, error } = await supabase
       .from('members')
       .select('*, brokers(code, name)')
-      .eq('id', params.id)
+      .eq('id', (await params).id)
       .single()
 
     if (error) throw error
@@ -116,7 +116,7 @@ export async function GET(
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     await requireAnyRole(request, ['admin', 'system_admin']);
@@ -154,7 +154,7 @@ export async function PATCH(
         plan_name: product.name,
         updated_at: new Date().toISOString()
       })
-      .eq('id', params.id)
+      .eq('id', (await params).id)
       .select()
       .single()
 
@@ -175,7 +175,7 @@ export async function PATCH(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   return NextResponse.json(
     { error: 'Member deletion is disabled', code: 'DELETE_DISABLED' },

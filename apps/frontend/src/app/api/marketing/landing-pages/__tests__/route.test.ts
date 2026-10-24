@@ -88,7 +88,7 @@ describe('PATCH /api/marketing/landing-pages/[id]', () => {
     const from = jest.fn().mockReturnValue({ select: jest.fn().mockReturnValue({ eq: readEq }), update });
     mockClient.mockReturnValue({ from });
 
-    const response = await PATCH(request({ ...payload, status: 'active' }), { params: { id: pageId } });
+    const response = await PATCH(request({ ...payload, status: 'active' }), { params: Promise.resolve({ id: pageId }) });
 
     expect(response.status).toBe(200);
     expect(update).toHaveBeenCalledWith(expect.objectContaining({

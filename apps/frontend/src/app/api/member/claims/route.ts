@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { getAuthenticatedMemberId } from '@/lib/member-session';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -7,22 +8,18 @@ const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 // GET - Fetch member's claims
 export async function GET(request: NextRequest) {
   try {
+    const memberId = await getAuthenticatedMemberId(request);
+    if (!memberId) return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
     const { searchParams } = new URL(request.url);
-    
-    // TODO: Get member_id from authenticated session
-    const memberId = searchParams.get('member_id');
+    if (searchParams.get('member_id') && searchParams.get('member_id') !== memberId) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
     const status = searchParams.get('status');
     const dateFrom = searchParams.get('date_from');
     const dateTo = searchParams.get('date_to');
-    const limit = searchParams.get('limit') ? parseInt(searchParams.get('limit')!) : 50;
-
-    if (!memberId) {
-      return NextResponse.json(
-        { error: 'Member ID required' },
-        { status: 400 }
-      );
-    }
+    const requestedLimit = Number(searchParams.get('limit') || 50);
+    const limit = Number.isInteger(requestedLimit) ? Math.max(1, Math.min(requestedLimit, 100)) : 50;
 
     // Build query
     let query = supabase
@@ -105,8 +102,7 @@ export async function GET(request: NextRequest) {
     console.error('Error in member claims API:', error);
     return NextResponse.json(
       { 
-        error: 'Failed to fetch claims',
-        details: error instanceof Error ? error.message : 'Unknown error'
+        error: 'Failed to fetch claims'
       },
       { status: 500 }
     );

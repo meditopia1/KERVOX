@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Use provider_id from authenticated user if not provided
-    const providerId = body.provider_id || user.providerId;
+    const providerId = user.providerId;
     
     if (!providerId) {
       return NextResponse.json(

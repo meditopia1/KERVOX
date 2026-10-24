@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import { generateEFTFile, generatePaymentReference, validatePaymentBatch } from '@/lib/payment-processing';
+import { generateEFTFile, validatePaymentBatch } from '@/lib/payment-processing';
 import { createAuthenticatedSupabaseClient, requireAnyRole } from '@/lib/auth-server';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
@@ -9,13 +9,13 @@ const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 // GET - Fetch batch details
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     await requireAnyRole(request, ['finance_manager', 'admin', 'system_admin']);
 
     const supabase = createAuthenticatedSupabaseClient(request);
-    const batchId = params.id;
+    const batchId = (await params).id;
 
     // Fetch batch with payments
     const { data: batch, error: batchError } = await supabase
@@ -55,14 +55,14 @@ export async function GET(
 // PATCH - Update batch status (approve, process, complete)
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const user = await requireAnyRole(request, ['finance_manager', 'admin', 'system_admin']);
     
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
     const body = await request.json();
-    const batchId = params.id;
+    const batchId = (await params).id;
 
     const {
       action // 'approve', 'process', 'complete', 'cancel'
@@ -73,7 +73,10 @@ export async function PATCH(
       .from('payment_batches')
       .select(`
         *,
-        payments:claim_payments (*)
+        payments:claim_payments (
+          *,
+          claim:claims (claim_number)
+        )
       `)
       .eq('id', batchId)
       .single();
@@ -134,10 +137,15 @@ export async function PATCH(
       });
 
       // Upload EFT file to Supabase Storage
-      const fileName = `${batch.batch_number}.txt`;
-      const { data: uploadData, error: uploadError } = await supabase.storage
+      const safeBatchNumber = String(batch.batch_number || '').replace(/[^A-Za-z0-9_-]/g, '');
+      if (!safeBatchNumber || safeBatchNumber !== batch.batch_number) {
+        return NextResponse.json({ error: 'Invalid batch number' }, { status: 400 });
+      }
+      const fileName = `${safeBatchNumber}.txt`;
+      const eftPath = `batches/${fileName}`;
+      const { error: uploadError } = await supabase.storage
         .from('eft-files')
-        .upload(`batches/${fileName}`, eftContent, {
+        .upload(eftPath, eftContent, {
           contentType: 'text/plain',
           upsert: true
         });
@@ -147,26 +155,15 @@ export async function PATCH(
         throw uploadError;
       }
 
-      // Get public URL
-      const { data: urlData } = supabase.storage
-        .from('eft-files')
-        .getPublicUrl(`batches/${fileName}`);
-
-      updateData = {
-        ...updateData,
-        status: 'processing',
-        eft_file_generated: true,
-        eft_file_url: urlData.publicUrl,
-        eft_file_generated_at: now,
-        processed_by: user.id,
-        processed_at: now
-      };
-
-      // Update payment statuses to processing
-      await supabase
-        .from('claim_payments')
-        .update({ payment_status: 'processing', updated_at: now })
-        .eq('payment_batch_id', batchId);
+      const { data: processedBatch, error: processError } = await supabase.rpc(
+        'process_payment_batch',
+        { p_batch_id: batchId, p_user_id: user.id, p_eft_path: eftPath }
+      );
+      if (processError) {
+        console.error('Atomic payment batch processing failed:', processError);
+        return NextResponse.json({ error: 'Could not process batch' }, { status: 409 });
+      }
+      return NextResponse.json({ success: true, batch: processedBatch, message: 'Batch processed successfully' });
 
     } else if (action === 'complete') {
       // Validate batch can be completed
@@ -177,41 +174,17 @@ export async function PATCH(
         );
       }
 
-      const paymentDate = new Date().toISOString().split('T')[0];
-
-      updateData = {
-        ...updateData,
-        status: 'completed',
-        completed_at: now
-      };
-
-      // Update all payments to paid
-      const paymentUpdates = batch.payments.map(async (payment: any) => {
-        const paymentRef = generatePaymentReference(payment.claim.claim_number);
-        
-        // Update payment record
-        await supabase
-          .from('claim_payments')
-          .update({
-            payment_status: 'paid',
-            payment_date: paymentDate,
-            payment_reference: paymentRef,
-            updated_at: now
-          })
-          .eq('id', payment.id);
-
-        // Update claim record
-        await supabase
-          .from('claims')
-          .update({
-            paid_date: paymentDate,
-            payment_reference: paymentRef,
-            updated_at: now
-          })
-          .eq('id', payment.claim_id);
-      });
-
-      await Promise.all(paymentUpdates);
+      const { data: completedBatch, error: completionError } = await supabase.rpc(
+        'complete_payment_batch', { p_batch_id: batchId }
+      );
+      if (completionError) {
+        console.error('Atomic payment batch completion failed:', completionError);
+        return NextResponse.json(
+          { error: 'Could not complete batch; no partial completion was saved' },
+          { status: completionError.code === 'P0001' ? 409 : 500 }
+        );
+      }
+      return NextResponse.json({ success: true, batch: completedBatch, message: 'Batch completed successfully' });
 
     } else if (action === 'cancel') {
       // Validate batch can be cancelled
@@ -222,16 +195,14 @@ export async function PATCH(
         );
       }
 
-      updateData = {
-        ...updateData,
-        status: 'cancelled'
-      };
-
-      // Update all payments to cancelled
-      await supabase
-        .from('claim_payments')
-        .update({ payment_status: 'cancelled', updated_at: now })
-        .eq('payment_batch_id', batchId);
+      const { data: cancelledBatch, error: cancellationError } = await supabase.rpc(
+        'cancel_payment_batch', { p_batch_id: batchId }
+      );
+      if (cancellationError) {
+        console.error('Atomic payment batch cancellation failed:', cancellationError);
+        return NextResponse.json({ error: 'Could not cancel batch' }, { status: 409 });
+      }
+      return NextResponse.json({ success: true, batch: cancelledBatch, message: 'Batch cancelled successfully' });
 
     } else {
       return NextResponse.json(
@@ -245,13 +216,15 @@ export async function PATCH(
       .from('payment_batches')
       .update(updateData)
       .eq('id', batchId)
+      .eq('status', batch.status)
       .select()
-      .single();
+      .maybeSingle();
 
     if (updateError) {
       console.error('Error updating batch:', updateError);
       throw updateError;
     }
+    if (!updatedBatch) return NextResponse.json({ error: 'Batch was changed by another request' }, { status: 409 });
 
     return NextResponse.json({
       success: true,
@@ -263,8 +236,7 @@ export async function PATCH(
     console.error('Error updating batch:', error);
     return NextResponse.json(
       { 
-        error: 'Failed to update batch', 
-        details: error instanceof Error ? error.message : 'Unknown error' 
+        error: 'Failed to update batch'
       },
       { status: 500 }
     );
@@ -273,8 +245,7 @@ export async function PATCH(
 
 // DELETE - Disabled for security
 export async function DELETE(
-  request: NextRequest,
-  { params }: { params: { id: string } }
+  _request: NextRequest
 ) {
   return NextResponse.json(
     { 

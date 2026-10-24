@@ -1,14 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabaseClient } from '@/lib/supabase-server'
+import { enforcePublicRateLimit, readBoundedJson, RequestBodyError } from '@/lib/public-api-guard'
 
 export const dynamic = 'force-dynamic'
 
 export async function POST(request: NextRequest) {
   try {
+    const limited = await enforcePublicRateLimit(request, 'application', 8, 300)
+    if (limited) return limited
     const supabaseAdmin = createServerSupabaseClient()
-    const data = await request.json()
+    const data = await readBoundedJson(request, 256 * 1024)
     
-    console.log('📝 Application submission started for:', data.email)
+    // This public request is not proof that the sender owns the supplied email
+    // or identity number. Keep the submitted application separate from the
+    // master contact record until staff verify ownership.
     
     // Generate application number
     const appNumber = `APP-${new Date().getFullYear()}-${String(Date.now()).slice(-6)}`
@@ -43,45 +48,7 @@ export async function POST(request: NextRequest) {
       data.debitOrderDay = parseInt(data.debitOrderDay)
     }
     
-    // Find or create the contact record that satisfies the applications.contact_id constraint.
-    console.log('🔍 Looking up contact by email/id number:', data.email, data.idNumber)
-    const { data: matchingContacts, error: contactError } = await supabaseAdmin
-      .from('contacts')
-      .select('id, email, id_number')
-      .or(`email.eq.${data.email},id_number.eq.${data.idNumber}`)
-
-    if (contactError) {
-      console.error('❌ Contact lookup error:', contactError)
-      throw contactError
-    }
-
-    let contactId = matchingContacts?.[0]?.id || null
-
-    if (!contactId) {
-      console.log('🆕 No matching contact found, creating one for the application...')
-      const { data: newContact, error: createContactError } = await supabaseAdmin
-        .from('contacts')
-        .insert({
-          first_name: data.firstName,
-          last_name: data.lastName,
-          email: data.email,
-          mobile: data.mobile,
-          id_number: data.idNumber,
-          is_lead: true,
-          source: data.source || 'website_application',
-        })
-        .select('id')
-        .single()
-
-      if (createContactError) {
-        console.error('❌ Failed to create contact for application:', createContactError)
-        throw createContactError
-      }
-
-      contactId = newContact.id
-    }
-
-    console.log('✅ Contact resolved for application:', contactId)
+    const contactId: string | null = null
 
     // Create application record
     console.log('📄 Creating application record...')
@@ -130,7 +97,6 @@ export async function POST(request: NextRequest) {
     console.log('📋 Application data prepared:', {
       appNumber,
       contactId,
-      email: data.email,
       planName: data.planName,
     })
     
@@ -147,30 +113,9 @@ export async function POST(request: NextRequest) {
     
     console.log('✅ Application created:', application.id)
 
-    if (contactId) {
-      const { error: contactUpdateError } = await supabaseAdmin
-        .from('contacts')
-        .update({
-          first_name: data.firstName,
-          last_name: data.lastName,
-          email: data.email,
-          mobile: data.mobile,
-          id_number: data.idNumber,
-          is_lead: true,
-          is_applicant: true,
-          marketing_consent: data.marketingConsent || false,
-          marketing_consent_date: data.marketingConsentDate,
-          email_consent: data.emailConsent || false,
-          sms_consent: data.smsConsent || false,
-          phone_consent: data.phoneConsent || false,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', contactId)
-
-      if (contactUpdateError) {
-        console.error('⚠️ Failed to sync contact consent/state:', contactUpdateError)
-      }
-    }
+    // Public applications must not overwrite an existing contact's identity
+    // or consent based only on an unverified email or ID number. The consent
+    // supplied here remains attached to the new application record.
 
     // Step 3: Insert dependants if any
     if (data.dependents && data.dependents.length > 0) {
@@ -193,47 +138,17 @@ export async function POST(request: NextRequest) {
       if (depsError) throw depsError
     }
 
-    // Step 4: Log contact interaction
-    const { error: interactionError } = await supabaseAdmin
-      .from('contact_interactions')
-      .insert({
-        contact_id: contactId,
-        interaction_type: 'application_submitted',
-        interaction_date: new Date().toISOString(),
-        notes: `Application ${appNumber} submitted`,
-        metadata: {
-          application_id: application.id,
-          application_number: appNumber,
-          plan_id: data.planId,
-          plan_name: data.planName,
-        },
-      })
-
-    if (interactionError) {
-      console.error('⚠️ Failed to log interaction (non-critical):', interactionError)
-      // Don't throw - this is non-critical
-    }
-
     console.log('✅ Application submission complete:', appNumber)
     return NextResponse.json({
       success: true,
       applicationNumber: appNumber,
       applicationId: application.id,
-      contactId,
     })
   } catch (error) {
+    if (error instanceof RequestBodyError) return NextResponse.json({ error: error.message }, { status: error.status })
     console.error('Application submission error:', error)
-    console.error('Error details:', {
-      message: error instanceof Error ? error.message : 'Unknown error',
-      stack: error instanceof Error ? error.stack : undefined,
-      error: error
-    })
     return NextResponse.json(
-      { 
-        error: 'Failed to submit application', 
-        details: error instanceof Error ? error.message : 'Unknown error',
-        stack: error instanceof Error ? error.stack : undefined
-      },
+      { error: 'Failed to submit application' },
       { status: 500 }
     )
   }

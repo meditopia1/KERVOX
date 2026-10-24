@@ -25,13 +25,37 @@ function capitalizeName(name: string): string {
 export async function POST(request: NextRequest) {
   try {
     await requireAnyRole(request, ['operations_manager', 'system_admin', 'admin']);
-    const formData = await request.formData();
+    const maxRequestBytes = 6 * 1024 * 1024;
+    const statedLength = Number(request.headers.get('content-length') || 0);
+    if (statedLength > maxRequestBytes) return NextResponse.json({ error: 'File is too large' }, { status: 413 });
+    if (!request.body) return NextResponse.json({ error: 'No file provided' }, { status: 400 });
+    const reader = request.body.getReader();
+    const chunks: Buffer[] = [];
+    let total = 0;
+    let done = false;
+    while (!done) {
+      const chunk = await reader.read();
+      if (chunk.done) { done = true; break; }
+      total += chunk.value.byteLength;
+      if (total > maxRequestBytes) {
+        await reader.cancel();
+        return NextResponse.json({ error: 'File is too large' }, { status: 413 });
+      }
+      chunks.push(Buffer.from(chunk.value));
+    }
+    const boundedRequest = new Request(request.url, {
+      method: 'POST', headers: request.headers, body: Buffer.concat(chunks),
+    });
+    const formData = await boundedRequest.formData();
     const file = formData.get('file') as File;
     const groupId = formData.get('groupId') as string;
     const collectionMethod = formData.get('collectionMethod') as string;
 
-    if (!file) {
+    if (!file || typeof file === 'string') {
       return NextResponse.json({ error: 'No file provided' }, { status: 400 });
+    }
+    if (!file.size || file.size > 5 * 1024 * 1024 || !/\.(xlsx|xls)$/i.test(file.name)) {
+      return NextResponse.json({ error: 'Upload a spreadsheet smaller than 5 MB' }, { status: 413 });
     }
 
     if (!groupId) {
@@ -39,7 +63,11 @@ export async function POST(request: NextRequest) {
     }
 
     const arrayBuffer = await file.arrayBuffer();
-    const workbook = XLSX.read(arrayBuffer, { cellDates: true });
+    const fileBytes = Buffer.from(arrayBuffer);
+    const isXlsx = fileBytes[0] === 0x50 && fileBytes[1] === 0x4b;
+    const isXls = fileBytes.subarray(0, 8).equals(Buffer.from([0xd0, 0xcf, 0x11, 0xe0, 0xa1, 0xb1, 0x1a, 0xe1]));
+    if (!isXlsx && !isXls) return NextResponse.json({ error: 'Invalid spreadsheet format' }, { status: 415 });
+    const workbook = XLSX.read(arrayBuffer, { cellDates: true, sheetRows: 5002 });
     const sheetName = workbook.SheetNames[0];
     const worksheet = workbook.Sheets[sheetName];
     
@@ -58,6 +86,7 @@ export async function POST(request: NextRequest) {
     
     // Read data starting from the row after the header (or from beginning if no header found)
     const data = XLSX.utils.sheet_to_json(worksheet, { range: headerRowIndex >= 0 ? headerRowIndex : 0 });
+    if (data.length > 5000) return NextResponse.json({ error: 'Spreadsheet exceeds 5,000 rows' }, { status: 413 });
 
     if (data.length === 0) {
       return NextResponse.json({ 
@@ -160,8 +189,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Bulk upload error:', error);
     return NextResponse.json({ 
-      error: 'Failed to process file',
-      details: error instanceof Error ? error.message : 'Unknown error'
+      error: 'Failed to process file'
     }, { status: 500 });
   }
 }

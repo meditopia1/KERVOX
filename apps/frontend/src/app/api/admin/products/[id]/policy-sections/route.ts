@@ -12,7 +12,7 @@ type SectionItemPayload = {
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     await requireAnyRole(request, ['admin', 'system_admin']);
@@ -21,7 +21,7 @@ export async function GET(
     const { data: sectionItems, error } = await supabase
       .from('policy_section_items')
       .select('*')
-      .eq('product_id', params.id)
+      .eq('product_id', (await params).id)
       .order('section_type')
       .order('display_order');
 
@@ -61,7 +61,7 @@ export async function GET(
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     await requireAnyRole(request, ['admin', 'system_admin']);
@@ -81,7 +81,7 @@ export async function POST(
     const { data: lastItem } = await supabase
       .from('policy_section_items')
       .select('display_order')
-      .eq('product_id', params.id)
+      .eq('product_id', (await params).id)
       .eq('section_type', sectionType)
       .order('display_order', { ascending: false })
       .limit(1)
@@ -92,7 +92,7 @@ export async function POST(
     const { data: createdItem, error } = await supabase
       .from('policy_section_items')
       .insert({
-        product_id: params.id,
+        product_id: (await params).id,
         section_type: sectionType,
         title,
         content,
