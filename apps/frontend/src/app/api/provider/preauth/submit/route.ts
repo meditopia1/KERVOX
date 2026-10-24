@@ -121,7 +121,6 @@ export async function POST(request: NextRequest) {
       });
 
     console.log(`✅ Pre-authorization submitted: ${preauthNumber}`);
-    console.log(`   Member: ${member.member_number}`);
     console.log(`   Provider: ${providerId}`);
     console.log(`   Estimated Cost: R${body.estimated_cost}`);
 

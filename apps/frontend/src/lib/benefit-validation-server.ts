@@ -227,7 +227,7 @@ export async function initializeBenefitUsage(
         ignoreDuplicates: true 
       });
 
-    console.log(`Initialized benefit usage for member ${memberId}, ${benefits.length} benefits`);
+    console.log(`Initialized ${benefits.length} benefit usage records`);
   } catch (error) {
     console.error('Error initializing benefit usage:', error);
     throw error;

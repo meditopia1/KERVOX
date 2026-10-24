@@ -115,7 +115,7 @@ export async function POST(request: NextRequest) {
     if (!waitingPeriodValidation.valid) {
       initialStatus = 'pended';
       pendedReason = waitingPeriodValidation.errors.join('; ');
-      console.log(`⚠️ Multi-line claim auto-pended: Waiting period not met for member ${member.member_number}`);
+      console.log('Multi-line claim auto-pended: waiting period not met');
     }
 
     // Validate pre-authorization if required
@@ -277,7 +277,6 @@ export async function POST(request: NextRequest) {
     }
 
     console.log(`✅ Multi-line claim submitted: ${claimNumber}`);
-    console.log(`   Member: ${member.member_number}`);
     console.log(`   Provider: ${providerId}`);
     console.log(`   Line items: ${body.claim_lines.length}`);
     console.log(`   Total amount: R${totalClaimedAmount}`);

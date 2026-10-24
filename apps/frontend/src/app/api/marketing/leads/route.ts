@@ -21,15 +21,6 @@ export async function GET() {
 
     console.log(`Query result - Total count: ${count}, Rows returned: ${contacts?.length || 0}`);
     
-    if (contacts && contacts.length > 0) {
-      console.log('Contacts found:');
-      contacts.forEach((c, i) => {
-        console.log(`  ${i + 1}. ${c.first_name} ${c.last_name} (${c.email})`);
-      });
-    } else {
-      console.log('No contacts found!');
-    }
-
     // Transform contacts to leads format
     const leads = (contacts || []).map(contact => ({
       id: contact.id,

@@ -50,10 +50,10 @@ async function updateBenefitUsage(
         throw updateError;
       }
 
-      console.log(`✅ Benefit usage updated for member ${memberId}, benefit ${benefitType}: +R${approvedAmount} (total: R${newUsedAmount}, count: ${newUsedCount})`);
+      console.log('Benefit usage updated');
     } else {
       // Create new record - get limits from product_benefits
-      console.log(`⚠️  No benefit usage record found for member ${memberId}, benefit ${benefitType}. Creating new record.`);
+      console.log('No benefit usage record found; creating one');
       
       // Get member's plan_id
       const { data: member } = await supabase
@@ -97,7 +97,7 @@ async function updateBenefitUsage(
         throw insertError;
       }
 
-      console.log(`✅ Benefit usage record created for member ${memberId}, benefit ${benefitType}: R${approvedAmount}`);
+      console.log('Benefit usage record created');
     }
   } catch (error) {
     console.error('❌ Error updating benefit usage:', error);
@@ -279,7 +279,7 @@ export async function PATCH(
     // Update benefit usage if claim is approved
     if (action === 'approve' && claim.benefit_type && claim.member_id) {
       try {
-        console.log(`🔄 Updating benefit usage for claim ${claimId}: member ${claim.member_id}, benefit ${claim.benefit_type}, amount R${approved_amount}`);
+        console.log('Updating benefit usage for adjudicated claim');
         
         await updateBenefitUsage(
           supabase,
@@ -288,15 +288,15 @@ export async function PATCH(
           approved_amount
         );
         
-        console.log(`✅ Benefit usage updated successfully for claim ${claimId}`);
+        console.log('Benefit usage updated successfully');
       } catch (benefitError) {
-        console.error('❌ Error updating benefit usage for claim', claimId, ':', benefitError);
+        console.error('Error updating benefit usage for claim:', benefitError);
         // Don't fail the request if benefit usage update fails
         // The claim is still approved, but usage tracking failed
         console.log('⚠️  Claim approved but benefit usage update failed. This should be investigated.');
       }
     } else if (action === 'approve') {
-      console.log(`⚠️  Skipping benefit usage update for claim ${claimId}: benefit_type=${claim.benefit_type}, member_id=${claim.member_id}`);
+      console.log('Skipping benefit usage update because required claim details are missing');
     }
 
     // TODO: Send notifications

@@ -1,11 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { getAuthenticatedUser } from '@/lib/auth-server';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
 export async function POST(request: NextRequest) {
   try {
+    const { user } = await getAuthenticatedUser(request);
+    if (!user) {
+      return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
+    }
+    if (!user.isProvider || !user.providerId) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
     const body = await request.json();
 
@@ -281,8 +290,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       { 
         valid: false,
-        error: 'Failed to validate benefit', 
-        details: error instanceof Error ? error.message : 'Unknown error' 
+        error: 'Failed to validate benefit'
       },
       { status: 500 }
     );

@@ -74,7 +74,6 @@ export async function POST(request: NextRequest) {
         payment_status,
         plan_name,
         monthly_premium,
-        broker_code,
         start_date,
         email,
       mobile
@@ -147,7 +146,6 @@ export async function POST(request: NextRequest) {
           payment_status: persistedPaymentStatus,
           plan_name: member.plan_name,
           monthly_premium: member.monthly_premium,
-          broker_code: member.broker_code,
           start_date: member.start_date,
           email: member.email,
           mobile: member.mobile
@@ -158,7 +156,7 @@ export async function POST(request: NextRequest) {
     // Fetch dependants
     const { data: dependants } = await supabaseAdmin
       .from('member_dependants')
-      .select('*')
+      .select('first_name, last_name, id_number, relationship, status')
       .eq('member_id', member.id)
       .eq('status', 'active');
 
@@ -166,21 +164,9 @@ export async function POST(request: NextRequest) {
     const currentYear = new Date().getFullYear();
     const { data: benefitUsage } = await supabaseAdmin
       .from('benefit_usage')
-      .select('*')
+      .select('benefit_type, total_limit_amount, total_limit_count, used_amount, used_count, remaining_amount, remaining_count')
       .eq('member_id', member.id)
       .eq('year', currentYear);
-
-    // Fetch recent claims (last 6 months)
-    const sixMonthsAgo = new Date();
-    sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
-    
-    const { data: recentClaims } = await supabaseAdmin
-      .from('claims')
-      .select('id, claim_number, service_date, claim_type, claimed_amount, approved_amount, status')
-      .eq('member_id', member.id)
-      .gte('service_date', sixMonthsAgo.toISOString().split('T')[0])
-      .order('service_date', { ascending: false })
-      .limit(10);
 
     // Calculate waiting periods
     const waitingPeriods: { [key: string]: { completed: boolean; daysRemaining: number; requiredDays: number } } = {};
@@ -237,15 +223,17 @@ export async function POST(request: NextRequest) {
         payment_status: persistedPaymentStatus,
         plan_name: member.plan_name,
         monthly_premium: member.monthly_premium,
-        broker_code: member.broker_code,
         start_date: member.start_date,
         email: member.email,
         mobile: member.mobile,
-        dependants: dependants || [],
-        benefit_usage: benefitUsage || [],
+        dependants: (dependants || []).map((dependant) => ({
+          name: [dependant.first_name, dependant.last_name].filter(Boolean).join(' '),
+          idNumber: dependant.id_number,
+          relationship: dependant.relationship,
+          status: dependant.status
+        })),
         benefits_summary: benefitsSummary,
-        waiting_periods: waitingPeriods,
-        recent_claims: recentClaims || []
+        waiting_periods: waitingPeriods
       }
     });
 

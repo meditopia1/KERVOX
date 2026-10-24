@@ -61,6 +61,7 @@ const STORAGE_BUCKETS = (process.env.STORAGE_BUCKETS || 'call-recordings,applica
   .split(',')
   .map((value) => value.trim())
   .filter(Boolean);
+const PRIVATE_BUCKET_IDS = new Set(['applications', 'call-recordings']);
 const OUT_DIR = process.env.STORAGE_MIGRATION_OUT_DIR || path.join(__dirname, '../../tmp');
 const STORAGE_SCHEMA_OUT = process.env.STORAGE_SCHEMA_OUT || path.join(OUT_DIR, 'storage-schema.generated.sql');
 const STORAGE_BUCKETS_OUT = process.env.STORAGE_BUCKETS_OUT || path.join(OUT_DIR, 'storage-buckets.generated.json');
@@ -432,11 +433,14 @@ async function createTargetRunner() {
 
 function normalizeBuckets(inputBuckets) {
   return (inputBuckets || [])
-    .map((bucket) => ({
-      id: bucket.id || bucket.name,
-      name: bucket.name || bucket.id,
-      public: bucket.public ?? true,
-    }))
+    .map((bucket) => {
+      const id = bucket.id || bucket.name;
+      return {
+        id,
+        name: bucket.name || bucket.id,
+        public: PRIVATE_BUCKET_IDS.has(id) ? false : bucket.public ?? true,
+      };
+    })
     .filter((bucket) => bucket.id && bucket.name);
 }
 
@@ -547,9 +551,9 @@ async function fetchSourceBuckets() {
 }
 
 async function ensureBuckets(targetClient, buckets) {
-  if (!buckets.length) {
-    buckets = STORAGE_BUCKETS.map((name) => ({ id: name, name, public: true }));
-  }
+  buckets = normalizeBuckets(buckets.length
+    ? buckets
+    : STORAGE_BUCKETS.map((name) => ({ id: name, name, public: true })));
 
   for (const bucket of buckets) {
     await targetClient.query(
@@ -560,14 +564,38 @@ async function ensureBuckets(targetClient, buckets) {
       set name = excluded.name,
           public = excluded.public
       `,
-      [bucket.id, bucket.name, bucket.public ?? true]
+      [bucket.id, bucket.name, bucket.public]
     );
   }
+
+  // A partial source bucket list must not leave existing target uploads public.
+  await targetClient.query(`
+    update storage.buckets
+    set public = false
+    where id in ('applications', 'call-recordings')
+  `);
 
   return buckets;
 }
 
 async function ensurePolicies(targetClient, buckets) {
+  for (const name of ['Allow public uploads', 'Allow public reads', 'Allow public updates', 'Allow public deletes']) {
+    await targetClient.query(`drop policy if exists "${name}" on storage.objects;`);
+  }
+
+  // A restrictive policy protects private files even if the imported schema
+  // contains a differently named permissive policy for storage.objects.
+  await targetClient.query(`drop policy if exists "Browser tokens cannot manage KERVOX private uploads" on storage.objects;`);
+  await targetClient.query(`
+    create policy "Browser tokens cannot manage KERVOX private uploads"
+    on storage.objects
+    as restrictive
+    for all
+    to anon, authenticated
+    using (bucket_id not in ('applications', 'call-recordings'))
+    with check (bucket_id not in ('applications', 'call-recordings'))
+  `);
+
   for (const bucket of buckets) {
     const safeName = bucket.id.replace(/[^a-zA-Z0-9_]+/g, '_');
     const bucketLiteral = sqlLiteral(bucket.id);
@@ -576,6 +604,8 @@ async function ensurePolicies(targetClient, buckets) {
     await targetClient.query(`drop policy if exists "Allow public reads ${safeName}" on storage.objects;`);
     await targetClient.query(`drop policy if exists "Allow public updates ${safeName}" on storage.objects;`);
     await targetClient.query(`drop policy if exists "Allow public deletes ${safeName}" on storage.objects;`);
+
+    if (!bucket.public) continue;
 
     await targetClient.query(`
       create policy "Allow public uploads ${safeName}"
@@ -628,7 +658,7 @@ async function main() {
     const sourceBuckets = await fetchSourceBuckets();
     const buckets = sourceBuckets.length
       ? normalizeBuckets(sourceBuckets)
-      : STORAGE_BUCKETS.map((name) => ({ id: name, name, public: true }));
+      : normalizeBuckets(STORAGE_BUCKETS.map((name) => ({ id: name, name, public: true })));
     fs.writeFileSync(STORAGE_SCHEMA_OUT, schemaSql || FALLBACK_STORAGE_SQL);
     fs.writeFileSync(STORAGE_BUCKETS_OUT, `${JSON.stringify(buckets, null, 2)}\n`);
 
@@ -673,4 +703,6 @@ async function main() {
   }
 }
 
-main();
+if (require.main === module) main();
+
+module.exports = { normalizeBuckets, ensureBuckets, ensurePolicies };

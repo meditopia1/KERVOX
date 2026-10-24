@@ -96,7 +96,7 @@ export async function POST(request: NextRequest) {
     if (!waitingPeriodValidation.valid) {
       initialStatus = 'pended';
       pendedReason = waitingPeriodValidation.errors.join('; ');
-      console.log(`⚠️ Claim auto-pended: Waiting period not met for member ${member.member_number}`);
+      console.log('Claim auto-pended: waiting period not met');
       console.log(`   Benefit: ${body.benefit_type}`);
       console.log(`   Reason: ${pendedReason}`);
     }

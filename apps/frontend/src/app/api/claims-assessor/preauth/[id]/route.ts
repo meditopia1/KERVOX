@@ -199,7 +199,6 @@ export async function PATCH(
       });
 
     console.log(`✅ Pre-authorization ${auditAction}: ${currentPreauth.preauth_number}`);
-    console.log(`   By: ${user.email}`);
     if (action === 'approve') {
       console.log(`   Approved Amount: R${approved_amount}`);
     }

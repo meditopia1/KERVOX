@@ -142,7 +142,7 @@ export async function PATCH(request: NextRequest) {
       }
 
       const memberNumber = await generateNextMemberNumber()
-      console.log(`✅ Generated member number: ${memberNumber}`)
+      console.log('Generated member number for approved application')
 
       // For all members, use the selected plan from application and fetch product ID
       const finalPlanName = application.plan_name
@@ -263,14 +263,14 @@ export async function PATCH(request: NextRequest) {
       // Initialize benefit usage for the new member
       if (finalPlanId) {
         try {
-          console.log(`🔄 Initializing benefit usage for member ${memberNumber} with plan ${finalPlanId}`)
+          console.log('Initializing benefit usage for approved member')
 
           // Import the initialization function
           const { initializeBenefitUsage } = await import('@/lib/benefit-validation-server')
 
           await initializeBenefitUsage(supabaseAdmin, member.id, finalPlanId)
 
-          console.log(`✅ Benefit usage initialized for member ${memberNumber}`)
+          console.log('Benefit usage initialized for approved member')
         } catch (benefitError) {
           console.error('❌ Failed to initialize benefit usage:', benefitError)
           // Don't fail the approval if benefit initialization fails - can be done manually

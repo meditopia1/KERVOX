@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { BenefitValidationRequest, BenefitValidationResponse } from '@/types/benefit-validation';
+import { authFetch } from '@/lib/auth-fetch';
 
 export function useBenefitValidation() {
   const [validating, setValidating] = useState(false);
@@ -12,7 +13,7 @@ export function useBenefitValidation() {
     setValidationResult(null);
 
     try {
-      const response = await fetch('/api/claims/validate-benefit', {
+      const response = await authFetch('/api/claims/validate-benefit', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(request)
